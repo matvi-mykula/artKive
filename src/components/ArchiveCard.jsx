@@ -1,7 +1,10 @@
 import { navigate } from '../lib/router';
+import { useTextSegments } from '../hooks/useTextSegments';
 import { RichText } from './RichText';
 
 export function ArchiveCard({ work }) {
+  const segments = useTextSegments(work.blurbPath);
+
   return (
     <article className="archive-card">
       <button
@@ -18,11 +21,10 @@ export function ArchiveCard({ work }) {
           className="card-image"
           style={{
             objectPosition: work.coverPosition,
-            transform: `scale(${work.coverScale ?? 1})`,
           }}
         />
       </button>
-      <RichText className="card-text" segments={work.cardText} />
+      {segments.length ? <RichText className="card-text" segments={segments} /> : null}
     </article>
   );
 }

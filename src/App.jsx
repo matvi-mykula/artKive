@@ -44,7 +44,6 @@ function HomePage({ items }) {
   return (
     <main className="page-shell">
       <section className="hero">
-        <p className="eyebrow">Archive</p>
         <h1>Works</h1>
       </section>
 

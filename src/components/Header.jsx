@@ -7,12 +7,12 @@ export function Header({ theme, onThemeToggle, currentPath }) {
   return (
     <header className="site-header">
       <button className="brand" type="button" onClick={() => navigate('/')}>
-        artKive
+        Matvi ArtKive
       </button>
       <div className="header-meta">
-        <span className="status">
-          {isHome ? 'Archive Index' : isTagPage ? 'Tag Index' : 'Work Record'}
-        </span>
+        {!isHome ? (
+          <span className="status">{isTagPage ? 'Tag Index' : 'Work Record'}</span>
+        ) : null}
         <button className="theme-toggle" type="button" onClick={onThemeToggle}>
           Theme: {theme}
         </button>

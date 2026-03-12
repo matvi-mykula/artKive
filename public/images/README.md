@@ -4,7 +4,7 @@ Image workflow for this project:
 2. Use the work slug as the folder name.
 3. Put a cover image and any additional images in that folder.
 4. Update src/data.js with the filenames in display order.
-5. Optionally add a blurb.txt file in the same folder for the work page text.
+5. Add a blurb.txt file for the archive card text and a description.txt file for the work page text.
 
 Recommended structure:
 
@@ -13,15 +13,19 @@ public/images/night-window/01.jpg
 public/images/night-window/02.jpg
 public/images/field-notes/cover.jpg
 
-Blurb text files:
+Text files:
 
-- store them beside the images as blurb.txt
+- store them beside the images as blurb.txt and description.txt
 - use [[tag]] for a linked tag word
 - use [[tag|visible phrase]] when the linked phrase should differ from the tag slug
 
 Example:
 
+blurb.txt
 This [[lamp]] is built from cut [[stone]].
+
+description.txt
+This [[lamp]] is built from cut [[stone]]. The piece sits between object and [[sculpture]].
 
 Recommended filename rules:
 

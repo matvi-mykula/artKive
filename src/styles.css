@@ -91,12 +91,18 @@ img {
 }
 
 .brand,
-.theme-toggle,
 .back-link {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-family: var(--font-ui);
   font-size: 0.78rem;
+}
+
+.theme-toggle {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-family: var(--font-ui);
+  font-size: 0.68rem;
 }
 
 .brand {
@@ -199,12 +205,6 @@ img {
   font-size: 1rem;
   line-height: 1.6;
   color: var(--muted);
-}
-
-.detail-debug {
-  font-family: var(--font-ui);
-  font-size: 0.8rem;
-  letter-spacing: 0.04em;
 }
 
 .inline-tag {
