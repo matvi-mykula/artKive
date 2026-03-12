@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { works } from './data';
+import { ArchiveCard } from './components/ArchiveCard';
+import { Header } from './components/Header';
+import { TagPage } from './components/TagPage';
+import { WorkPage } from './components/WorkPage';
+import { navigate } from './lib/router';
+import { getTag, getTagLabel } from './tags';
 
 const THEME_KEY = 'art-display-theme';
 
@@ -16,27 +22,22 @@ function getRoute() {
   return window.location.pathname;
 }
 
-function navigate(path) {
-  window.history.pushState({}, '', path);
-  window.dispatchEvent(new PopStateEvent('popstate'));
-}
+function parseRoute(route) {
+  if (route === '/') {
+    return { type: 'home' };
+  }
 
-function Header({ theme, onThemeToggle, currentPath }) {
-  const isHome = currentPath === '/';
+  const workMatch = route.match(/^\/works\/([^/]+)$/);
+  if (workMatch) {
+    return { type: 'work', slug: workMatch[1] };
+  }
 
-  return (
-    <header className="site-header">
-      <button className="brand" type="button" onClick={() => navigate('/')}>
-        Art Display
-      </button>
-      <div className="header-meta">
-        <span className="status">{isHome ? 'Archive Index' : 'Work Record'}</span>
-        <button className="theme-toggle" type="button" onClick={onThemeToggle}>
-          Theme: {theme}
-        </button>
-      </div>
-    </header>
-  );
+  const tagMatch = route.match(/^\/tags\/([^/]+)$/);
+  if (tagMatch) {
+    return { type: 'tag', slug: tagMatch[1] };
+  }
+
+  return { type: 'not-found' };
 }
 
 function HomePage({ items }) {
@@ -48,85 +49,23 @@ function HomePage({ items }) {
       </section>
 
       <section className="archive-grid" aria-label="Artwork archive">
-        {items.map((work, index) => (
-          <article className="archive-card" key={work.slug}>
-            <button
-              className="card-link"
-              type="button"
-              onClick={() => navigate(`/works/${work.slug}`)}
-            >
-              <div className="card-copy">
-                <p className="card-index">
-                  {String(index + 1).padStart(2, '0')} / {work.year}
-                </p>
-                <h2>{work.title}</h2>
-                <ul className="tag-list" aria-label={`${work.title} tags`}>
-                  {work.tags.map((tag) => (
-                    <li key={tag}>{tag}</li>
-                  ))}
-                </ul>
-              </div>
-              <img
-                src={work.coverImage}
-                alt={work.title}
-                className="card-image"
-                style={{
-                  objectPosition: work.coverPosition,
-                  transform: `scale(${work.coverScale ?? 1})`,
-                }}
-              />
-            </button>
-          </article>
+        {items.map((work) => (
+          <ArchiveCard key={work.slug} work={work} />
         ))}
       </section>
     </main>
   );
 }
 
-function WorkPage({ work }) {
-  if (!work) {
-    return (
-      <main className="page-shell">
-        <section className="detail-header">
-          <p className="eyebrow">Missing work</p>
-          <h1>This record does not exist.</h1>
-          <button className="back-link" type="button" onClick={() => navigate('/')}>
-            Back to archive
-          </button>
-        </section>
-      </main>
-    );
-  }
-
+function NotFoundPage({ title, label }) {
   return (
     <main className="page-shell">
       <section className="detail-header">
+        <p className="eyebrow">{label}</p>
+        <h1>{title}</h1>
         <button className="back-link" type="button" onClick={() => navigate('/')}>
           Back to archive
         </button>
-        <p className="eyebrow">
-          {work.year} / {work.slug}
-        </p>
-        <h1>{work.title}</h1>
-        {work.description ? (
-          <p className="detail-description">{work.description}</p>
-        ) : null}
-        <ul className="tag-list" aria-label={`${work.title} tags`}>
-          {work.tags.map((tag) => (
-            <li key={tag}>{tag}</li>
-          ))}
-        </ul>
-      </section>
-
-      <section className="detail-images" aria-label={`${work.title} images`}>
-        {work.images.map((image, index) => (
-          <figure className="detail-figure" key={`${work.slug}-${index}`}>
-            <img src={image} alt={`${work.title} view ${index + 1}`} />
-            <figcaption>
-              {work.title} / frame {String(index + 1).padStart(2, '0')}
-            </figcaption>
-          </figure>
-        ))}
       </section>
     </main>
   );
@@ -147,14 +86,50 @@ export default function App() {
     window.localStorage.setItem(THEME_KEY, theme);
   }, [theme]);
 
+  const routeState = useMemo(() => parseRoute(route), [route]);
+
   const selectedWork = useMemo(() => {
-    const match = route.match(/^\/works\/([^/]+)$/);
-    if (!match) {
+    if (routeState.type !== 'work') {
       return null;
     }
 
-    return works.find((work) => work.slug === match[1]) ?? null;
-  }, [route]);
+    return works.find((work) => work.slug === routeState.slug) ?? null;
+  }, [routeState]);
+
+  const selectedTag = useMemo(() => {
+    if (routeState.type !== 'tag') {
+      return null;
+    }
+
+    const tag = getTag(routeState.slug);
+    if (!tag) {
+      return null;
+    }
+
+    return {
+      slug: routeState.slug,
+      label: getTagLabel(routeState.slug),
+      works: works.filter((work) => work.tags.includes(routeState.slug)),
+    };
+  }, [routeState]);
+
+  let content = <NotFoundPage label="Missing page" title="This page does not exist." />;
+
+  if (routeState.type === 'home') {
+    content = <HomePage items={works} />;
+  } else if (routeState.type === 'work') {
+    content = selectedWork ? (
+      <WorkPage key={selectedWork.slug} work={selectedWork} />
+    ) : (
+      <NotFoundPage label="Missing work" title="This record does not exist." />
+    );
+  } else if (routeState.type === 'tag') {
+    content = selectedTag ? (
+      <TagPage tag={selectedTag} />
+    ) : (
+      <NotFoundPage label="Missing tag" title="This tag does not exist." />
+    );
+  }
 
   return (
     <div className="app-shell">
@@ -167,7 +142,7 @@ export default function App() {
           )
         }
       />
-      {route === '/' ? <HomePage items={works} /> : <WorkPage work={selectedWork} />}
+      {content}
     </div>
   );
 }

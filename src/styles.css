@@ -151,15 +151,6 @@ img {
   max-width: 10ch;
 }
 
-.intro,
-.detail-description {
-  margin: 0;
-  max-width: 36rem;
-  font-size: 1rem;
-  line-height: 1.55;
-  color: var(--muted);
-}
-
 .archive-grid,
 .detail-images {
   display: grid;
@@ -176,13 +167,15 @@ img {
 
 .archive-card {
   overflow: hidden;
+  display: grid;
+  gap: 0.9rem;
+  padding: 0.9rem;
 }
 
 .card-link {
   width: 100%;
   display: grid;
   gap: 0.9rem;
-  padding: 0.9rem;
   text-align: left;
 }
 
@@ -198,23 +191,38 @@ img {
   line-height: 0.96;
 }
 
-.tag-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
+.intro,
+.card-text,
+.detail-description {
   margin: 0;
-  padding: 0;
-  list-style: none;
+  max-width: 36rem;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--muted);
 }
 
-.tag-list li {
-  padding: 0.35rem 0.55rem;
-  border: 1px solid var(--line);
-  color: var(--muted);
+.detail-debug {
   font-family: var(--font-ui);
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+}
+
+.inline-tag {
+  display: inline;
+  padding: 0;
+  color: color-mix(in srgb, var(--text) 72%, var(--accent));
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 0.12em;
+  transition:
+    color 160ms ease,
+    text-decoration-color 160ms ease;
+}
+
+.inline-tag:hover,
+.inline-tag:focus-visible {
+  color: var(--accent);
+  text-decoration-color: currentColor;
 }
 
 .card-image,
