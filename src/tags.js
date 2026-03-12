@@ -1,4 +1,5 @@
 export const tags = {
+  root: { id: 'root', label: 'roots' },
   stone: { id: 'stone', label: 'stone' },
   lamp: { id: 'lamp', label: 'lamp' },
   sculpture: { id: 'sculpture', label: 'sculpture' },
