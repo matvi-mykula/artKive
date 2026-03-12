@@ -68,12 +68,18 @@ img {
   max-width: 100%;
 }
 
+a {
+  color: inherit;
+}
+
 #root {
   min-height: 100vh;
 }
 
 .app-shell {
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .site-header {
@@ -128,6 +134,7 @@ img {
   width: min(100%, 1200px);
   margin: 0 auto;
   padding: 1rem 1rem 4rem;
+  flex: 1;
 }
 
 .hero,
@@ -246,6 +253,27 @@ img {
   padding-bottom: 0.2rem;
 }
 
+.site-footer {
+  width: min(100%, 1200px);
+  margin: 0 auto;
+  padding: 0 1rem 1.25rem;
+}
+
+.footer-link {
+  padding: 0;
+  color: var(--muted);
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+}
+
+.footer-link:hover,
+.footer-link:focus-visible {
+  color: var(--accent);
+}
+
 @media (min-width: 700px) {
   .site-header {
     padding: 1.2rem 1.5rem;
@@ -253,6 +281,10 @@ img {
 
   .page-shell {
     padding: 1.25rem 1.5rem 5rem;
+  }
+
+  .site-footer {
+    padding: 0 1.5rem 1.5rem;
   }
 
   .archive-grid {

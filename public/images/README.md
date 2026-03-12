@@ -32,6 +32,7 @@ Image discovery:
 - all image files in a work folder are included automatically on the work page
 - the file named in src/data.js as `cover` is used as the card cover and shown first in the image sequence
 - additional images are sorted automatically by filename
+- `blurb` and `description` can be set to `null` in src/data.js when a work should appear without one or both text files
 
 Recommended filename rules:
 

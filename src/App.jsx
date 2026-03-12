@@ -27,6 +27,10 @@ function parseRoute(route) {
     return { type: 'home' };
   }
 
+  if (route === '/contact') {
+    return { type: 'contact' };
+  }
+
   const workMatch = route.match(/^\/works\/([^/]+)$/);
   if (workMatch) {
     return { type: 'work', slug: workMatch[1] };
@@ -67,6 +71,32 @@ function NotFoundPage({ title, label }) {
         </button>
       </section>
     </main>
+  );
+}
+
+function ContactPage() {
+  return (
+    <main className="page-shell">
+      <section className="detail-header">
+        <p className="eyebrow">Contact</p>
+        <h1>Contact</h1>
+        <p className="detail-description">
+          <a className="footer-link" href="mailto:matt.pronchick@gmail.com">
+            matt.pronchick@gmail.com
+          </a>
+        </p>
+      </section>
+    </main>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="site-footer">
+      <button className="footer-link" type="button" onClick={() => navigate('/contact')}>
+        Contact
+      </button>
+    </footer>
   );
 }
 
@@ -116,6 +146,8 @@ export default function App() {
 
   if (routeState.type === 'home') {
     content = <HomePage items={works} />;
+  } else if (routeState.type === 'contact') {
+    content = <ContactPage />;
   } else if (routeState.type === 'work') {
     content = selectedWork ? (
       <WorkPage key={selectedWork.slug} work={selectedWork} />
@@ -142,6 +174,7 @@ export default function App() {
         }
       />
       {content}
+      <Footer />
     </div>
   );
 }
