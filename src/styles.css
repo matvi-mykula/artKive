@@ -6,6 +6,7 @@
   --muted: #5fbf75;
   --line: rgba(147, 245, 166, 0.16);
   --accent: #b7ff85;
+  --tag: #b7ff85;
   --shadow: 0 20px 60px rgba(0, 0, 0, 0.28);
   --font-body: "Georgia", "Times New Roman", serif;
   --font-ui: "Arial Narrow", "Arial", sans-serif;
@@ -19,6 +20,7 @@
   --muted: #5fbf75;
   --line: rgba(147, 245, 166, 0.16);
   --accent: #b7ff85;
+  --tag: #b7ff85;
   --shadow: 0 22px 64px rgba(0, 0, 0, 0.32);
 }
 
@@ -30,6 +32,7 @@
   --muted: #2d6a39;
   --line: rgba(18, 49, 26, 0.14);
   --accent: #1f8f3e;
+  --tag: #0d6b2d;
   --shadow: 0 18px 48px rgba(18, 49, 26, 0.08);
 }
 
@@ -217,19 +220,21 @@ a {
 .inline-tag {
   display: inline;
   padding: 0;
-  color: color-mix(in srgb, var(--text) 72%, var(--accent));
-  text-decoration: underline;
-  text-decoration-color: transparent;
-  text-underline-offset: 0.12em;
+  color: var(--tag);
+  text-shadow:
+    0 0 0.55rem color-mix(in srgb, var(--tag) 45%, transparent),
+    0 0 1rem color-mix(in srgb, var(--tag) 18%, transparent);
   transition:
     color 160ms ease,
-    text-decoration-color 160ms ease;
+    text-shadow 160ms ease;
 }
 
 .inline-tag:hover,
 .inline-tag:focus-visible {
   color: var(--accent);
-  text-decoration-color: currentColor;
+  text-shadow:
+    0 0 0.75rem color-mix(in srgb, var(--accent) 62%, transparent),
+    0 0 1.35rem color-mix(in srgb, var(--accent) 28%, transparent);
 }
 
 .card-image,
