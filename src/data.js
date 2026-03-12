@@ -1,3 +1,42 @@
+const imageModules = import.meta.glob('../public/images/**/*.{png,jpg,jpeg,JPG,JPEG,svg,webp,heic,HEIC}', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+});
+
+function publicImagePath(modulePath) {
+  return modulePath.replace('../public', '');
+}
+
+function compareImageNames(left, right) {
+  const leftName = left.split('/').pop() ?? left;
+  const rightName = right.split('/').pop() ?? right;
+
+  return leftName.localeCompare(rightName, undefined, {
+    numeric: true,
+    sensitivity: 'base',
+  });
+}
+
+function resolveImages(assetPath, coverFileName) {
+  const folderPrefix = `../public/images/${assetPath}/`;
+  const allImages = Object.entries(imageModules)
+    .filter(([modulePath]) => modulePath.startsWith(folderPrefix))
+    .map(([modulePath, url]) => ({
+      fileName: modulePath.slice(folderPrefix.length),
+      url: publicImagePath(String(url)),
+    }))
+    .sort((left, right) => compareImageNames(left.fileName, right.fileName));
+
+  const coverEntry = allImages.find((image) => image.fileName === coverFileName);
+  const remainingImages = allImages.filter((image) => image.fileName !== coverFileName);
+
+  return {
+    coverImage: coverEntry?.url ?? publicImagePath(`${folderPrefix}${coverFileName}`),
+    images: [coverEntry, ...remainingImages].filter(Boolean).map((image) => image.url),
+  };
+}
+
 function imagePath(basePath, fileName) {
   return `/images/${basePath}/${fileName}`;
 }
@@ -12,8 +51,9 @@ function createWork({
   description = 'description.txt',
   cover = 'cover.jpg',
   coverPosition = 'center center',
-  images = [],
 }) {
+  const { coverImage, images } = resolveImages(assetPath, cover);
+
   return {
     slug,
     title,
@@ -21,9 +61,9 @@ function createWork({
     tags,
     blurbPath: imagePath(assetPath, blurb),
     descriptionPath: imagePath(assetPath, description),
-    coverImage: imagePath(assetPath, cover),
+    coverImage,
     coverPosition,
-    images: images.map((fileName) => imagePath(assetPath, fileName)),
+    images,
   };
 }
 
@@ -34,7 +74,6 @@ export const works = [
     year: '2026',
     tags: ['stone', 'lamp', 'sculpture'],
     cover: 'cover.jpg',
-    images: ['cover.jpg', '01.jpg', '02.jpg', '03.jpg', '04.jpg'],
   }),
   createWork({
     slug: 'shell-lamp',
@@ -42,32 +81,28 @@ export const works = [
     year: '2026',
     tags: ['shell', 'lamp', 'sculpture'],
     cover: 'cover.jpg',
-    images: ['cover.jpg', '01.jpg', '02.jpg', '03.jpg'],
   }),
   createWork({
     slug: 'little-guys',
     title: 'LittleGuys',
     year: '2026',
-    tags: ['figure', 'object', 'study'],
+    tags: ['figure', 'study', 'coconut-fiber'],
     cover: 'cover.png',
-    images: ['cover.png'],
   }),
   createWork({
     slug: 'root-nightlight',
     title: 'RootNightlight',
     year: '2026',
-    tags: ['root', 'lamp', 'sculpture', 'study'],
+    tags: ['oat-grass-roots', 'lamp', 'sculpture', 'study'],
     assetPath: 'grown-tapestry/root-nightlight',
     cover: 'IMG_3310.JPG',
-    images: ['IMG_3310.JPG', 'IMG_3311.JPG', 'IMG_3312.JPG'],
   }),
   createWork({
     slug: 'static-fabric',
     title: 'StaticFabric',
     year: '2026',
-    tags: ['root', 'study', 'sculpture', 'object'],
+    tags: ['oat-grass-roots', 'study', 'sculpture', 'object'],
     assetPath: 'grown-tapestry/static-fabric',
     cover: 'cover.png',
-    images: ['cover.png', '01.jpg'],
   }),
 ];
