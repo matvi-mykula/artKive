@@ -6,6 +6,7 @@ import { TagPage } from "./components/TagPage";
 import { WorkPage } from "./components/WorkPage";
 import { navigate } from "./lib/router";
 import { getTag, getTagLabel } from "./tags";
+import { siteAudioTracks } from "./audio";
 
 const THEME_KEY = "art-display-theme";
 
@@ -176,6 +177,7 @@ export default function App() {
       <Header
         theme={theme}
         currentPath={route}
+        tracks={siteAudioTracks}
         onThemeToggle={() =>
           setTheme((currentTheme) =>
             currentTheme === "dark" ? "light" : "dark",

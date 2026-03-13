@@ -125,6 +125,43 @@ a {
   gap: 0.45rem;
 }
 
+.audio-player {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--muted);
+}
+
+.audio-player.is-playing {
+  color: var(--accent);
+}
+
+.audio-player.is-error {
+  color: var(--muted);
+}
+
+.audio-toggle,
+.audio-title {
+  font-family: var(--font-ui);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.audio-toggle {
+  padding: 0;
+  color: inherit;
+}
+
+.audio-toggle:disabled {
+  cursor: default;
+  opacity: 0.65;
+}
+
+.audio-title {
+  white-space: nowrap;
+}
+
 .status {
   color: var(--muted);
   font-family: var(--font-ui);

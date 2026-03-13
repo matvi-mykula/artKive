@@ -1,6 +1,7 @@
 import { navigate } from "../lib/router";
+import { AudioPlayer } from "./AudioPlayer";
 
-export function Header({ theme, onThemeToggle, currentPath }) {
+export function Header({ theme, onThemeToggle, currentPath, tracks }) {
   const isHome = currentPath === "/";
   const isTagPage = currentPath.startsWith("/tags/");
 
@@ -13,6 +14,7 @@ export function Header({ theme, onThemeToggle, currentPath }) {
         {!isHome && isTagPage ? (
           <span className="status">Tag Library</span>
         ) : null}
+        <AudioPlayer tracks={tracks} />
         <button className="theme-toggle" type="button" onClick={onThemeToggle}>
           Theme: {theme}
         </button>
