@@ -34,6 +34,14 @@ Image discovery:
 - additional images are sorted automatically by filename
 - `blurb` and `description` can be set to `null` in src/data.js when a work should appear without one or both text files
 
+Optimization workflow:
+
+- create a backup outside the repo before replacing a live asset
+- use the repo helper script for non-destructive previews first:
+  - `npm run optimize:image -- --input public/images/<work>/cover.jpg --output /tmp/<work>-cover-preview.jpg`
+- if the preview looks good, move it into place manually
+- avoid using `sips` quality conversion on live repo assets for this project
+
 Recommended filename rules:
 
 - lowercase only
