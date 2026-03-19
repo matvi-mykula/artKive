@@ -26,14 +26,14 @@
 
 :root[data-theme="light"] {
   color-scheme: light;
-  --bg: #eef6ee;
-  --bg-elevated: #f6fbf6;
-  --text: #12311a;
-  --muted: #2d6a39;
-  --line: rgba(18, 49, 26, 0.14);
-  --accent: #1f8f3e;
-  --tag: #0d6b2d;
-  --shadow: 0 18px 48px rgba(18, 49, 26, 0.08);
+  --bg: #edf3fb;
+  --bg-elevated: #f7faff;
+  --text: #132b52;
+  --muted: #456da6;
+  --line: rgba(19, 43, 82, 0.14);
+  --accent: #2b6fdf;
+  --tag: #1d5dcc;
+  --shadow: 0 18px 48px rgba(19, 43, 82, 0.08);
 }
 
 * {
