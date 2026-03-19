@@ -25,6 +25,7 @@ export function ArchiveCard({ work }) {
         />
       </button>
       {segments.length ? <RichText className="card-text" segments={segments} /> : null}
+      {work.dimension ? <p className="work-dimension">{work.dimension}</p> : null}
     </article>
   );
 }

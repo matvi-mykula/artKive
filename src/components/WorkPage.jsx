@@ -19,6 +19,7 @@ export function WorkPage({ work }) {
         {segments.length ? (
           <RichText className="detail-description" segments={segments} />
         ) : null}
+        {work.dimension ? <p className="work-dimension">{work.dimension}</p> : null}
       </section>
 
       <section className="detail-images" aria-label={`${work.title} images`}>

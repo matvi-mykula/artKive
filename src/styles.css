@@ -254,6 +254,15 @@ a {
   color: var(--muted);
 }
 
+.work-dimension {
+  margin: -0.25rem 0 0;
+  color: var(--muted);
+  font-family: var(--font-ui);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .inline-tag {
   display: inline;
   padding: 0;

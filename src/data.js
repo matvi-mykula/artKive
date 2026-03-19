@@ -56,6 +56,7 @@ function createWork({
   title,
   year,
   tags,
+  dimension = null,
   assetPath = slug,
   blurb = "blurb.txt",
   description = "description.txt",
@@ -69,6 +70,7 @@ function createWork({
     title,
     year,
     tags,
+    dimension,
     blurbPath: blurb ? imagePath(assetPath, blurb) : null,
     descriptionPath: description ? imagePath(assetPath, description) : null,
     coverImage,
@@ -83,6 +85,7 @@ export const works = [
     title: "RibRock",
     year: "2026",
     tags: ["stone", "lamp", "sculpture"],
+    dimension: "28 x 18 x 18",
     cover: "cover.jpg",
   }),
   createWork({
@@ -90,6 +93,7 @@ export const works = [
     title: "ShellLamp",
     year: "2026",
     tags: ["shell", "lamp", "sculpture"],
+    dimension: "34 x 13 x 8",
     cover: "cover.jpg",
   }),
   createWork({
