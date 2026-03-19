@@ -85,7 +85,7 @@ export const works = [
     title: "RibRock",
     year: "2026",
     tags: ["stone", "lamp", "sculpture"],
-    dimension: "28 x 18 x 18",
+    dimension: "28 x 18 x 18 cm",
     cover: "cover.jpg",
   }),
   createWork({
@@ -93,7 +93,7 @@ export const works = [
     title: "ShellLamp",
     year: "2026",
     tags: ["shell", "lamp", "sculpture"],
-    dimension: "34 x 13 x 8",
+    dimension: "34 x 13 x 8 cm",
     cover: "cover.jpg",
   }),
   createWork({

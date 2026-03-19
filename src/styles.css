@@ -198,7 +198,7 @@ a {
 .hero h1,
 .detail-header h1 {
   margin: 0;
-  font-size: clamp(2.2rem, 8vw, 5.8rem);
+  font-size: clamp(1.25rem, 4vw, 2.6rem);
   line-height: 0.92;
   font-weight: 400;
   max-width: 10ch;
@@ -239,7 +239,7 @@ a {
 
 .card-copy h2 {
   margin: 0;
-  font-size: clamp(1.6rem, 4vw, 2.6rem);
+  font-size: clamp(1.3rem, 3.2vw, 2.1rem);
   font-weight: 400;
   line-height: 0.96;
 }
@@ -286,12 +286,15 @@ a {
 .card-image,
 .detail-figure img {
   width: 100%;
-  aspect-ratio: 4 / 5;
   object-fit: cover;
 }
 
 .card-image {
-  transform-origin: center top;
+  aspect-ratio: 4 / 5;
+}
+
+.detail-figure img {
+  aspect-ratio: 4 / 5;
 }
 
 .detail-figure {
@@ -327,19 +330,20 @@ a {
 
 @media (min-width: 700px) {
   .site-header {
-    padding: 1.2rem 1.5rem;
+    padding: 0.85rem 1.25rem;
   }
 
   .page-shell {
-    padding: 1.25rem 1.5rem 5rem;
+    padding: 0.85rem 1.25rem 4rem;
   }
 
   .site-footer {
-    padding: 0 1.5rem 1.5rem;
+    padding: 0 1.25rem 1.25rem;
   }
 
   .archive-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5rem;
   }
 
   .detail-images {
@@ -348,7 +352,52 @@ a {
 }
 
 @media (min-width: 1024px) {
+  .hero,
+  .detail-header {
+    gap: 0.7rem;
+    padding: 0.4rem 0 1.2rem;
+  }
+
+  .hero h1,
+  .detail-header h1 {
+    font-size: clamp(1.15rem, 1.8vw, 1.95rem);
+  }
+
   .archive-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6.4rem;
+  }
+
+  .archive-card {
+    gap: 0.55rem;
+    padding: 0.65rem;
+  }
+
+  .card-link {
+    gap: 0.55rem;
+  }
+
+  .card-copy h2 {
+    font-size: clamp(1.15rem, 1.9vw, 1.6rem);
+  }
+
+  .card-image {
+    aspect-ratio: auto;
+    max-height: 23rem;
+    object-fit: contain;
+  }
+
+  .card-text {
+    font-size: 0.88rem;
+    line-height: 1.45;
+  }
+
+  .detail-description {
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  .work-dimension {
+    margin-top: -0.1rem;
+    font-size: 0.62rem;
   }
 }
