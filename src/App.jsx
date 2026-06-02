@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { works } from "./data";
 import { ArchiveCard } from "./components/ArchiveCard";
 import { Header } from "./components/Header";
