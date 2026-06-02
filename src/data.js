@@ -101,6 +101,7 @@ export const works = [
     title: "LittleGuys",
     year: "2026",
     tags: ["figure", "coconut-fiber"],
+    dimension: "61 x 61 x 8 cm",
     cover: "cover.png",
   }),
   createWork({
