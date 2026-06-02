@@ -1,9 +1,17 @@
 import { navigate } from "../lib/router";
 import { AudioPlayer } from "./AudioPlayer";
 
-export function Header({ theme, onThemeToggle, currentPath, tracks }) {
+export function Header({
+  theme,
+  themePreference,
+  onThemeToggle,
+  currentPath,
+  tracks,
+}) {
   const isHome = currentPath === "/";
   const isTagPage = currentPath.startsWith("/tags/");
+  const themeLabel =
+    themePreference === "auto" ? `Auto: ${theme}` : `Theme: ${theme}`;
 
   return (
     <header className="site-header">
@@ -16,7 +24,7 @@ export function Header({ theme, onThemeToggle, currentPath, tracks }) {
         ) : null}
         <AudioPlayer tracks={tracks} />
         <button className="theme-toggle" type="button" onClick={onThemeToggle}>
-          Theme: {theme}
+          {themeLabel}
         </button>
       </div>
     </header>

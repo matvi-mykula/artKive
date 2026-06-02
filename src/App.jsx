@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { works } from "./data";
 import { ArchiveCard } from "./components/ArchiveCard";
 import { Header } from "./components/Header";
@@ -8,15 +8,23 @@ import { navigate } from "./lib/router";
 import { getTag, getTagLabel } from "./tags";
 import { siteAudioTracks } from "./audio";
 
-const THEME_KEY = "art-display-theme";
+const THEME_PREFERENCE_KEY = "art-display-theme-preference";
+const LEGACY_THEME_KEY = "art-display-theme";
+const AUTO_THEME = "auto";
 
-function getInitialTheme() {
-  const storedTheme = window.localStorage.getItem(THEME_KEY);
+function getTimeBasedTheme(date = new Date()) {
+  const hour = date.getHours();
+  return hour >= 7 && hour < 19 ? "light" : "dark";
+}
+
+function getInitialThemePreference() {
+  const storedTheme = window.localStorage.getItem(THEME_PREFERENCE_KEY);
   if (storedTheme === "light" || storedTheme === "dark") {
     return storedTheme;
   }
 
-  return "dark";
+  window.localStorage.removeItem(LEGACY_THEME_KEY);
+  return AUTO_THEME;
 }
 
 function getRoute() {
@@ -109,8 +117,12 @@ function Footer() {
 }
 
 export default function App() {
-  const [theme, setTheme] = useState(getInitialTheme);
+  const [themePreference, setThemePreference] = useState(
+    getInitialThemePreference,
+  );
   const [route, setRoute] = useState(getRoute);
+  const theme =
+    themePreference === AUTO_THEME ? getTimeBasedTheme() : themePreference;
 
   useEffect(() => {
     const handlePopState = () => setRoute(getRoute());
@@ -120,8 +132,16 @@ export default function App() {
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
-    window.localStorage.setItem(THEME_KEY, theme);
   }, [theme]);
+
+  useEffect(() => {
+    if (themePreference === AUTO_THEME) {
+      window.localStorage.removeItem(THEME_PREFERENCE_KEY);
+      return;
+    }
+
+    window.localStorage.setItem(THEME_PREFERENCE_KEY, themePreference);
+  }, [themePreference]);
 
   const routeState = useMemo(() => parseRoute(route), [route]);
 
@@ -176,11 +196,12 @@ export default function App() {
     <div className="app-shell">
       <Header
         theme={theme}
+        themePreference={themePreference}
         currentPath={route}
         tracks={siteAudioTracks}
         onThemeToggle={() =>
-          setTheme((currentTheme) =>
-            currentTheme === "dark" ? "light" : "dark",
+          setThemePreference(() =>
+            theme === "dark" ? "light" : "dark",
           )
         }
       />

@@ -12,9 +12,6 @@ export function ArchiveCard({ work }) {
         type="button"
         onClick={() => navigate(`/works/${work.slug}`)}
       >
-        <div className="card-copy">
-          <h2>{work.title}</h2>
-        </div>
         <img
           src={work.coverImage}
           alt={work.title}
@@ -24,8 +21,11 @@ export function ArchiveCard({ work }) {
           }}
         />
       </button>
-      {segments.length ? <RichText className="card-text" segments={segments} /> : null}
-      {work.dimension ? <p className="work-dimension">{work.dimension}</p> : null}
+      <div className="card-copy">
+        <h2>{work.title}</h2>
+        {work.dimension ? <p className="work-dimension">{work.dimension}</p> : null}
+        {segments.length ? <RichText className="card-text" segments={segments} /> : null}
+      </div>
     </article>
   );
 }
