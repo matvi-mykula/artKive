@@ -8,21 +8,27 @@ function publicAssetPath(modulePath) {
   return modulePath.replace("../public", "");
 }
 
-function toTitle(fileName) {
-  return fileName
-    .replace(/\.[^.]+$/, "")
-    .replace(/[-_]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
+const trackDefinitions = [
+  {
+    id: "cc-call-and-response",
+    title: "CCCallandresponse",
+    fileName: "CCCallandresponse.mp3",
+  },
+];
 
-export const siteAudioTracks = Object.entries(audioModules)
-  .map(([modulePath, url]) => {
-    const fileName = modulePath.split("/").pop() ?? "";
+export const siteAudioTracks = trackDefinitions
+  .map((track) => {
+    const modulePath = `../public/audio/${track.fileName}`;
+    const src = audioModules[modulePath];
+
+    if (!src) {
+      return null;
+    }
 
     return {
-      src: publicAssetPath(String(url)),
-      title: toTitle(fileName),
+      id: track.id,
+      title: track.title,
+      src: publicAssetPath(String(src)),
     };
   })
-  .sort((left, right) => left.title.localeCompare(right.title, undefined, { sensitivity: "base" }));
+  .filter(Boolean);
