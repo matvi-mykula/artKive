@@ -9,4 +9,9 @@ Use the `artdisplay-image-workflow` skill when:
 - updating work metadata in `src/data.js`
 - updating tags in `src/tags.js`
 
+The canonical copy of this skill lives in this repo at
+`docs/skills/artdisplay-image-workflow/SKILL.md`. If the named skill is not
+installed in the local Codex environment, read and follow that repo copy before
+doing image-workflow tasks.
+
 For other development work in this repo, there are no additional project-specific agent instructions here.
