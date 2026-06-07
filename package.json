@@ -7,7 +7,11 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "optimize:image": "node scripts/optimize-image.mjs"
+    "ingest:work": "node scripts/ingest-work.mjs",
+    "optimize:image": "node scripts/optimize-image.mjs",
+    "update:work": "node scripts/update-work.mjs",
+    "validate:archive": "node scripts/validate-archive.mjs",
+    "test": "node --test scripts/*.test.mjs"
   },
   "dependencies": {
     "react": "18.3.1",

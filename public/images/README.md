@@ -1,5 +1,13 @@
 Image workflow for this project:
 
+Prefer the repo scripts for repeatable updates:
+
+- `npm run ingest:work` creates a new work folder, optimizes images, writes copy, updates metadata, adds missing tags, and validates the archive.
+- `npm run update:work` updates existing work metadata and copy, adds missing tags, and validates the archive.
+- `npm run validate:archive` checks the archive without changing files.
+
+Manual workflow:
+
 1. Create one folder per work inside public/images/.
 2. Use the work slug as the folder name.
 3. Put a cover image and any additional images in that folder.
