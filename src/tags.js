@@ -9,6 +9,10 @@ export const tags = {
   shell: { id: 'shell', label: 'shell' },
   figure: { id: 'figure', label: 'figure' },
   object: { id: 'object', label: 'object' },
+  translucent: { id: 'translucent', label: 'translucent' },
+  wood: { id: 'wood', label: 'wood' },
+  dowels: { id: 'dowels', label: 'dowels' },
+  pyramid: { id: 'pyramid', label: 'pyramid' },
 };
 
 export function getTag(tagId) {

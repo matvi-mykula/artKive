@@ -81,6 +81,14 @@ function createWork({
 
 export const works = [
   createWork({
+    slug: "light-steppe",
+    title: "LightSteppe",
+    year: "2026",
+    tags: ["lamp", "sculpture", "object", "translucent", "wood", "dowels", "pyramid"],
+    dimension: "30.5 x 30.5 x 12.7 cm",
+    cover: "cover.jpg",
+  }),
+  createWork({
     slug: "rib-rock",
     title: "RibRock",
     year: "2026",
