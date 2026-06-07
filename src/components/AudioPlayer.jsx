@@ -56,10 +56,8 @@ export function AudioPlayer({ tracks }) {
     isError,
     isPlaying,
     selectTrack,
-    setVolume,
     skipTrack,
     togglePlayback,
-    volume,
   } = useAudioPlayer(tracks);
 
   useEffect(() => {
@@ -205,24 +203,6 @@ export function AudioPlayer({ tracks }) {
                 );
               })}
             </div>
-            <label className="audio-volume">
-              <span>Volume</span>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.01"
-                value={volume}
-                onChange={(event) => {
-                  const nextVolume = Number(event.target.value);
-                  if (Number.isFinite(nextVolume)) {
-                    setVolume(Math.min(1, Math.max(0, nextVolume)));
-                  }
-                }}
-                aria-label="Audio volume"
-              />
-              <span>{Math.round(volume * 100)}</span>
-            </label>
           </section>
         </div>
       ) : null}

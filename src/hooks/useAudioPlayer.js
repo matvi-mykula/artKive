@@ -1,8 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 
-const AUDIO_VOLUME_KEY = "art-display-audio-volume-v2";
-const DEFAULT_VOLUME = 0.75;
-
 function getWrappedIndex(index, offset, length) {
   if (!length) {
     return 0;
@@ -11,51 +8,12 @@ function getWrappedIndex(index, offset, length) {
   return (index + offset + length) % length;
 }
 
-function readStoredVolume() {
-  try {
-    const storedValue = window.localStorage.getItem(AUDIO_VOLUME_KEY);
-    if (storedValue === null) {
-      return DEFAULT_VOLUME;
-    }
-
-    const storedVolume = Number(storedValue);
-    if (
-      Number.isFinite(storedVolume) &&
-      storedVolume >= 0 &&
-      storedVolume <= 1
-    ) {
-      return storedVolume;
-    }
-  } catch {
-    return DEFAULT_VOLUME;
-  }
-
-  return DEFAULT_VOLUME;
-}
-
-function writeStoredVolume(volume) {
-  try {
-    window.localStorage.setItem(AUDIO_VOLUME_KEY, String(volume));
-  } catch {
-    // Volume still works for the current session when storage is unavailable.
-  }
-}
-
-function clampVolume(volume) {
-  if (!Number.isFinite(volume)) {
-    return DEFAULT_VOLUME;
-  }
-
-  return Math.min(1, Math.max(0, volume));
-}
-
 export function useAudioPlayer(tracks) {
   const audioRef = useRef(null);
   const errorSkipCountRef = useRef(0);
   const shouldKeepPlayingRef = useRef(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [status, setStatus] = useState(tracks.length ? "idle" : "error");
-  const [volume, setVolumeState] = useState(readStoredVolume);
 
   const currentTrack = tracks[currentIndex] ?? null;
 
@@ -67,7 +25,6 @@ export function useAudioPlayer(tracks) {
 
     const audio = new Audio();
     audio.preload = "metadata";
-    audio.volume = volume;
     audioRef.current = audio;
 
     const handleLoadStart = () =>
@@ -130,15 +87,6 @@ export function useAudioPlayer(tracks) {
       audioRef.current = null;
     };
   }, [tracks]);
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (audio) {
-      audio.volume = volume;
-    }
-
-    writeStoredVolume(volume);
-  }, [volume]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -217,20 +165,14 @@ export function useAudioPlayer(tracks) {
     setCurrentIndex(index);
   }
 
-  function setVolume(volumeValue) {
-    setVolumeState(clampVolume(volumeValue));
-  }
-
   return {
     currentIndex,
     currentTrack,
     isError: status === "error",
     isPlaying: status === "playing",
     selectTrack,
-    setVolume,
     skipTrack,
     status,
     togglePlayback,
-    volume,
   };
 }
