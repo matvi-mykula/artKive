@@ -1,23 +1,14 @@
 import { useEffect, useRef, useState } from "react";
+import { useAudioPlayer } from "../hooks/useAudioPlayer";
 
-const AUDIO_VOLUME_KEY = "art-display-audio-volume";
-
-function getWrappedIndex(index, offset, length) {
-  if (!length) {
-    return 0;
-  }
-
-  return (index + offset + length) % length;
-}
-
-function getInitialVolume() {
-  const storedVolume = Number(window.localStorage.getItem(AUDIO_VOLUME_KEY));
-  if (Number.isFinite(storedVolume) && storedVolume >= 0 && storedVolume <= 1) {
-    return storedVolume;
-  }
-
-  return 0.75;
-}
+const FOCUSABLE_SELECTOR = [
+  "button:not([disabled])",
+  "input:not([disabled])",
+  "select:not([disabled])",
+  "textarea:not([disabled])",
+  "a[href]",
+  "[tabindex]:not([tabindex='-1'])",
+].join(",");
 
 function TransportIcon({ type }) {
   if (type === "previous") {
@@ -55,199 +46,80 @@ function TransportIcon({ type }) {
 }
 
 export function AudioPlayer({ tracks }) {
-  const audioRef = useRef(null);
-  const errorSkipCountRef = useRef(0);
-  const shouldKeepPlayingRef = useRef(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const modalRef = useRef(null);
+  const closeButtonRef = useRef(null);
+  const openerRef = useRef(null);
   const [isChooserOpen, setIsChooserOpen] = useState(false);
-  const [status, setStatus] = useState(tracks.length ? "idle" : "error");
-  const [volume, setVolume] = useState(getInitialVolume);
-
-  const currentTrack = tracks[currentIndex] ?? null;
-
-  useEffect(() => {
-    if (!tracks.length) {
-      setStatus("error");
-      return undefined;
-    }
-
-    const audio = new Audio();
-    audio.preload = "metadata";
-    audio.volume = volume;
-    audioRef.current = audio;
-
-    const handleLoadStart = () =>
-      setStatus((current) => (current === "playing" ? current : "loading"));
-    const handlePlay = () => {
-      errorSkipCountRef.current = 0;
-      setStatus("playing");
-    };
-    const handlePause = () => {
-      if (!shouldKeepPlayingRef.current) {
-        setStatus("paused");
-      }
-    };
-    const handleError = () => {
-      if (
-        shouldKeepPlayingRef.current &&
-        tracks.length > 1 &&
-        errorSkipCountRef.current < tracks.length - 1
-      ) {
-        errorSkipCountRef.current += 1;
-        setCurrentIndex((index) => getWrappedIndex(index, 1, tracks.length));
-        return;
-      }
-
-      errorSkipCountRef.current = 0;
-      shouldKeepPlayingRef.current = false;
-      setStatus("error");
-    };
-    const handleEnded = () => {
-      if (!shouldKeepPlayingRef.current) {
-        setStatus("paused");
-        return;
-      }
-
-      if (tracks.length === 1) {
-        audio.currentTime = 0;
-        audio.play().catch(() => {
-          shouldKeepPlayingRef.current = false;
-          setStatus("error");
-        });
-        return;
-      }
-
-      setCurrentIndex((index) => getWrappedIndex(index, 1, tracks.length));
-    };
-
-    audio.addEventListener("loadstart", handleLoadStart);
-    audio.addEventListener("play", handlePlay);
-    audio.addEventListener("pause", handlePause);
-    audio.addEventListener("error", handleError);
-    audio.addEventListener("ended", handleEnded);
-
-    return () => {
-      audio.pause();
-      audio.removeEventListener("loadstart", handleLoadStart);
-      audio.removeEventListener("play", handlePlay);
-      audio.removeEventListener("pause", handlePause);
-      audio.removeEventListener("error", handleError);
-      audio.removeEventListener("ended", handleEnded);
-      audioRef.current = null;
-    };
-  }, [tracks]);
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (audio) {
-      audio.volume = volume;
-    }
-
-    window.localStorage.setItem(AUDIO_VOLUME_KEY, String(volume));
-  }, [volume]);
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio || !currentTrack) {
-      return;
-    }
-
-    audio.src = currentTrack.src;
-    audio.load();
-
-    if (!shouldKeepPlayingRef.current) {
-      errorSkipCountRef.current = 0;
-      setStatus((current) => (current === "error" ? current : "idle"));
-      return;
-    }
-
-    setStatus("loading");
-    audio.play().catch(() => {
-      shouldKeepPlayingRef.current = false;
-      setStatus("error");
-    });
-  }, [currentTrack]);
+  const {
+    currentIndex,
+    currentTrack,
+    isError,
+    isPlaying,
+    selectTrack,
+    setVolume,
+    skipTrack,
+    togglePlayback,
+    volume,
+  } = useAudioPlayer(tracks);
 
   useEffect(() => {
     if (!isChooserOpen) {
       return undefined;
     }
 
+    closeButtonRef.current?.focus();
+
     const handleKeyDown = (event) => {
       if (event.key === "Escape") {
         setIsChooserOpen(false);
+        return;
+      }
+
+      if (event.key !== "Tab") {
+        return;
+      }
+
+      const focusableElements = [
+        ...(modalRef.current?.querySelectorAll(FOCUSABLE_SELECTOR) ?? []),
+      ];
+      if (!focusableElements.length) {
+        event.preventDefault();
+        return;
+      }
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+
+      if (event.shiftKey && document.activeElement === firstElement) {
+        event.preventDefault();
+        lastElement.focus();
+        return;
+      }
+
+      if (!event.shiftKey && document.activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus();
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      openerRef.current?.focus();
+    };
   }, [isChooserOpen]);
-
-  async function startPlayback() {
-    const audio = audioRef.current;
-    if (!audio || !currentTrack) {
-      setStatus("error");
-      return;
-    }
-
-    shouldKeepPlayingRef.current = true;
-    setStatus("loading");
-
-    try {
-      await audio.play();
-    } catch {
-      shouldKeepPlayingRef.current = false;
-      setStatus("error");
-    }
-  }
-
-  async function handleToggle() {
-    const audio = audioRef.current;
-    if (!audio || !currentTrack) {
-      setStatus("error");
-      return;
-    }
-
-    if (!audio.paused) {
-      shouldKeepPlayingRef.current = false;
-      audio.pause();
-      return;
-    }
-
-    await startPlayback();
-  }
-
-  function handleSkip(offset) {
-    if (!currentTrack) {
-      setStatus("error");
-      return;
-    }
-
-    setCurrentIndex((index) => getWrappedIndex(index, offset, tracks.length));
-  }
 
   async function handleTrackSelect(index) {
     setIsChooserOpen(false);
-    shouldKeepPlayingRef.current = true;
-
-    if (index === currentIndex) {
-      await startPlayback();
-      return;
-    }
-
-    setStatus("loading");
-    setCurrentIndex(index);
+    await selectTrack(index);
   }
-
-  const isPlaying = status === "playing";
-  const isError = status === "error";
 
   return (
     <div className={`audio-player${isPlaying ? " is-playing" : ""}${isError ? " is-error" : ""}`}>
       <button
         className="audio-skip"
         type="button"
-        onClick={() => handleSkip(-1)}
+        onClick={() => skipTrack(-1)}
         aria-label="Previous song"
         disabled={!currentTrack}
       >
@@ -256,7 +128,7 @@ export function AudioPlayer({ tracks }) {
       <button
         className="audio-toggle"
         type="button"
-        onClick={handleToggle}
+        onClick={togglePlayback}
         aria-label={
           currentTrack
             ? isPlaying
@@ -271,6 +143,7 @@ export function AudioPlayer({ tracks }) {
       <button
         className="audio-title"
         type="button"
+        ref={openerRef}
         onClick={() => setIsChooserOpen(true)}
         disabled={!currentTrack}
         aria-haspopup="dialog"
@@ -281,7 +154,7 @@ export function AudioPlayer({ tracks }) {
       <button
         className="audio-skip"
         type="button"
-        onClick={() => handleSkip(1)}
+        onClick={() => skipTrack(1)}
         aria-label="Next song"
         disabled={!currentTrack}
       >
@@ -296,6 +169,7 @@ export function AudioPlayer({ tracks }) {
         >
           <section
             className="audio-modal"
+            ref={modalRef}
             role="dialog"
             aria-modal="true"
             aria-label="Choose song"
@@ -306,6 +180,7 @@ export function AudioPlayer({ tracks }) {
               <button
                 className="audio-modal-close"
                 type="button"
+                ref={closeButtonRef}
                 onClick={() => setIsChooserOpen(false)}
                 aria-label="Close song chooser"
               >
@@ -338,7 +213,12 @@ export function AudioPlayer({ tracks }) {
                 max="1"
                 step="0.01"
                 value={volume}
-                onChange={(event) => setVolume(Number(event.target.value))}
+                onChange={(event) => {
+                  const nextVolume = Number(event.target.value);
+                  if (Number.isFinite(nextVolume)) {
+                    setVolume(Math.min(1, Math.max(0, nextVolume)));
+                  }
+                }}
                 aria-label="Audio volume"
               />
               <span>{Math.round(volume * 100)}</span>
