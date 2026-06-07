@@ -1,13 +1,11 @@
 import { ArchiveCard } from './ArchiveCard';
+import { TagMap } from './TagMap';
+import { works } from '../data';
 
 export function TagPage({ tag }) {
   return (
     <main className="page-shell">
-      <section className="hero">
-        <p className="eyebrow">Tag</p>
-        <h1>{tag.label}</h1>
-        <p className="intro">{tag.works.length} work{tag.works.length === 1 ? '' : 's'}</p>
-      </section>
+      <TagMap selectedTagId={tag.slug} works={works} />
 
       <section className="archive-grid" aria-label={`${tag.label} works`}>
         {tag.works.map((work) => (

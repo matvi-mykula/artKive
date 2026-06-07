@@ -54,6 +54,14 @@ function tagLabel(tagId) {
 }
 
 export function ensureTagsSource(tagsSource, tagIds) {
+  const tagsObjectMatch = tagsSource.match(
+    /export const tags = \{[\s\S]*?\n\};/,
+  );
+
+  if (!tagsObjectMatch) {
+    throw new Error("Could not find exported tags object.");
+  }
+
   const missingTags = tagIds.filter(
     (tagId) =>
       !new RegExp(`id:\\s*'${tagId.replaceAll("'", "\\'")}'`).test(tagsSource),
@@ -70,7 +78,16 @@ export function ensureTagsSource(tagsSource, tagIds) {
     )
     .join("\n");
 
-  return tagsSource.replace(/\s*};\s*$/, `\n${insertText}\n};\n`);
+  const nextTagsObject = tagsObjectMatch[0].replace(
+    /\n\};$/,
+    `\n${insertText}\n};`,
+  );
+
+  return (
+    tagsSource.slice(0, tagsObjectMatch.index) +
+    nextTagsObject +
+    tagsSource.slice(tagsObjectMatch.index + tagsObjectMatch[0].length)
+  );
 }
 
 function formatStringField(name, value) {

@@ -35,6 +35,23 @@ test("ensureTagsSource appends only missing tags", () => {
   assert.equal((next.match(/id: 'lamp'/g) ?? []).length, 1);
 });
 
+test("ensureTagsSource inserts before helper exports", () => {
+  const source = `export const tags = {
+  lamp: { id: 'lamp', label: 'lamp' },
+};
+
+export function getTag(tagId) {
+  return tags[tagId] ?? null;
+}`;
+
+  const next = ensureTagsSource(source, ["shell"]);
+
+  assert.match(
+    next,
+    /shell: \{ id: 'shell', label: 'shell' \},\n\};\n\nexport function getTag/,
+  );
+});
+
 test("insertWorkEntry adds a new createWork block", () => {
   const source = `export const works = [
   createWork({
