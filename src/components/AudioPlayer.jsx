@@ -1,11 +1,22 @@
 import { useEffect, useRef, useState } from "react";
 
+const AUDIO_VOLUME_KEY = "art-display-audio-volume";
+
 function getWrappedIndex(index, offset, length) {
   if (!length) {
     return 0;
   }
 
   return (index + offset + length) % length;
+}
+
+function getInitialVolume() {
+  const storedVolume = Number(window.localStorage.getItem(AUDIO_VOLUME_KEY));
+  if (Number.isFinite(storedVolume) && storedVolume >= 0 && storedVolume <= 1) {
+    return storedVolume;
+  }
+
+  return 0.75;
 }
 
 function TransportIcon({ type }) {
@@ -50,6 +61,7 @@ export function AudioPlayer({ tracks }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isChooserOpen, setIsChooserOpen] = useState(false);
   const [status, setStatus] = useState(tracks.length ? "idle" : "error");
+  const [volume, setVolume] = useState(getInitialVolume);
 
   const currentTrack = tracks[currentIndex] ?? null;
 
@@ -61,6 +73,7 @@ export function AudioPlayer({ tracks }) {
 
     const audio = new Audio();
     audio.preload = "metadata";
+    audio.volume = volume;
     audioRef.current = audio;
 
     const handleLoadStart = () =>
@@ -123,6 +136,15 @@ export function AudioPlayer({ tracks }) {
       audioRef.current = null;
     };
   }, [tracks]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (audio) {
+      audio.volume = volume;
+    }
+
+    window.localStorage.setItem(AUDIO_VOLUME_KEY, String(volume));
+  }, [volume]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -308,6 +330,19 @@ export function AudioPlayer({ tracks }) {
                 );
               })}
             </div>
+            <label className="audio-volume">
+              <span>Volume</span>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={volume}
+                onChange={(event) => setVolume(Number(event.target.value))}
+                aria-label="Audio volume"
+              />
+              <span>{Math.round(volume * 100)}</span>
+            </label>
           </section>
         </div>
       ) : null}
