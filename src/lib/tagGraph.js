@@ -1,8 +1,12 @@
-import { getTagLabel } from "../tags";
+import { getTagLabel, getTagTypeOrder } from "../tags";
 
 function compareByStrengthThenLabel(left, right) {
   if (right.strength !== left.strength) {
     return right.strength - left.strength;
+  }
+
+  if (left.typeOrder !== right.typeOrder) {
+    return left.typeOrder - right.typeOrder;
   }
 
   return left.label.localeCompare(right.label);
@@ -23,6 +27,7 @@ export function getTagGraph(works, selectedTagId) {
       const relation = relationMap.get(tagId) ?? {
         id: tagId,
         label: getTagLabel(tagId),
+        typeOrder: getTagTypeOrder(tagId),
         strength: 0,
         works: [],
       };

@@ -1,15 +1,11 @@
 ---
 name: artdisplay-image-workflow
-description: Use this skill when creating or updating ArtDisplay works, including image ingest, copy changes, sharp optimization, validation, and work/tag metadata updates.
+description: Use this skill when creating or updating ArtDisplay works, including image ingest, copy changes, sharp optimization, validation, work manifests, and typed tag metadata.
 metadata:
   short-description: Integrate ArtDisplay images
 ---
 
 # ArtDisplay Image Workflow
-
-Use this skill when artwork records need to be created, updated, or validated in the ArtDisplay site.
-
-## When to use
 
 Use this workflow for any of the following:
 
@@ -20,19 +16,21 @@ Use this workflow for any of the following:
 - a work needs `blurb.txt` or `description.txt`
 - images need to be renamed into the house style
 - images need to be optimized with `sharp`
-- tags or work metadata need to be updated in `src/data.js` or `src/tags.js`
+- tags or work metadata need to be updated
 
 ## Source of truth
 
-- Images live under `public/images/...`
-- Works are defined in `src/data.js`
-- Tags are defined in `src/tags.js`
+- Work metadata lives in `public/images/**/work.json`
+- Images live beside the manifest in the same work folder
+- Tags and tag types live in `src/tags.js`
+- `src/data.js` assembles runtime work data from manifests and image folders
 - Card text lives in `blurb.txt`
 - Work-page text lives in `description.txt`
 
 ## Decide the workflow first
 
-Before editing files, determine whether the requested work already exists in `src/data.js`.
+Before editing files, determine whether the requested work already has a
+`work.json` manifest.
 
 - If the work does not exist, use the create flow with `npm run ingest:work`.
 - If the work already exists, use the update flow with `npm run update:work`.
@@ -49,11 +47,12 @@ npm run ingest:work -- --slug <slug> --title <Title> --year <year> --tags tag-a,
 
 Important options:
 
-- `--slug`: folder and route slug, for example `light-steppe`
+- `--slug`: route slug, for example `light-steppe`
 - `--title`: display title, for example `LightSteppe`
 - `--year`: archive year
-- `--tags`: comma-separated tag ids; missing tags are added to `src/tags.js`
+- `--tags`: comma-separated tag ids; missing tags are added to `src/tags.js` with `types: ["uncategorized"]`
 - `--dimension`: optional dimensions string
+- `--order`: optional numeric archive sort order
 - `--images`: comma-separated source image paths
 - `--cover-index`: zero-based index into `--images`; defaults to `0`
 - `--asset-path`: optional nested image path when the folder should not match the slug
@@ -61,7 +60,9 @@ Important options:
 - `--blurb`: archive-card copy
 - `--description`: work-page copy
 
-The ingest script creates the work folder, optimizes images to the house naming pattern, writes text files, updates metadata, adds missing tags, and runs archive validation.
+The ingest script creates the work folder, optimizes images to the house naming
+pattern, writes text files, writes `work.json`, adds missing tags, and runs
+archive validation.
 
 ## Update flow
 
@@ -76,29 +77,88 @@ Useful options:
 - `--slug`: required existing work slug
 - `--title`: update display title
 - `--year`: update year
-- `--tags`: replace the metadata tag list; missing tags are added to `src/tags.js`
+- `--order`: update archive sort order
+- `--tags`: replace the metadata tag list; missing tags are added to `src/tags.js` with `types: ["uncategorized"]`
 - `--dimension`: update dimensions
 - `--cover`: update cover filename
 - `--cover-position`: update archive cover framing
-- `--asset-path`: update nested image path
 - `--blurb`: replace `blurb.txt`
 - `--description`: replace `description.txt`
 
-The update script updates metadata and copy, adds missing tags, and runs archive validation.
+The work folder path is the asset path. To change it, move the folder and then
+validate the archive.
 
-## Folder and naming rules
+## Manifest rules
 
-- One work gets one folder
-- Nested category folders are allowed, for example `public/images/grown-tapestry/root-nightlight`
-- In `src/data.js`, set:
-  - `slug`
-  - `title`
-  - `tags`
-  - `assetPath` when nested
-  - `cover`
-- Preferred filenames:
-  - `cover.jpg` or `cover.png`
-  - `01.jpg`, `02.jpg`, `03.jpg`
+One work gets one folder and one manifest:
+
+```txt
+public/images/night-window/work.json
+public/images/night-window/cover.jpg
+public/images/night-window/01.jpg
+public/images/night-window/blurb.txt
+public/images/night-window/description.txt
+```
+
+Nested category folders are allowed, for example:
+
+```txt
+public/images/grown-tapestry/root-nightlight/work.json
+```
+
+Example manifest:
+
+```json
+{
+  "slug": "night-window",
+  "title": "NightWindow",
+  "year": "2026",
+  "order": 90,
+  "dimension": "10 x 10 x 10 cm",
+  "cover": "cover.jpg",
+  "coverPosition": "center center",
+  "tags": ["lamp", "wood", "glow"]
+}
+```
+
+Required fields:
+
+- `slug`
+- `title`
+- `year`
+- `tags`
+
+Optional fields:
+
+- `order`
+- `dimension`
+- `cover`
+- `coverPosition`
+- `blurb`
+- `description`
+
+## Tag rules
+
+Tags are rich records in `src/tags.js`.
+
+Required tag fields:
+
+- `id`
+- `label`
+- `types`
+
+`types` is always an array, even when a tag only has one type.
+
+Optional tag fields:
+
+- `description`
+- `aliases`
+- `related`
+- `color`
+- `visible`
+
+Every type in `types` must exist in `tagTypes`. Every tag id used by work
+metadata or text must exist in `tags`.
 
 ## Text rules
 
@@ -113,7 +173,8 @@ The update script updates metadata and copy, adds missing tags, and runs archive
 
 Do not use `sips` on live repo assets.
 
-Use the standalone optimization helper when adding or replacing individual images outside the ingest script:
+Use the standalone optimization helper when adding or replacing individual
+images outside the ingest script:
 
 ```bash
 npm run optimize:image -- --input public/images/<work>/cover.jpg --output /tmp/<work>-cover-preview.jpg
@@ -146,5 +207,5 @@ Default optimization settings:
 ## Important behavior
 
 - All image files in a work folder are discovered automatically.
-- The file named by `cover` in `src/data.js` is used as the archive cover and first detail image.
-- `blurb` and `description` can be set to `null` in `src/data.js` if intentionally omitted.
+- The file named by `cover` in `work.json` is used as the archive cover and first detail image.
+- `blurb` and `description` can be set to `null` in `work.json` if intentionally omitted.

@@ -1,3 +1,8 @@
+const workModules = import.meta.glob("../public/images/**/work.json", {
+  eager: true,
+  import: "default",
+});
+
 const imageModules = import.meta.glob(
   "../public/images/**/*.{png,jpg,jpeg,JPG,JPEG,svg,webp,heic,HEIC}",
   {
@@ -9,6 +14,12 @@ const imageModules = import.meta.glob(
 
 function publicImagePath(modulePath) {
   return modulePath.replace("../public", "");
+}
+
+function assetPathFromManifestPath(modulePath) {
+  return modulePath
+    .replace("../public/images/", "")
+    .replace(/\/work\.json$/, "");
 }
 
 function compareImageNames(left, right) {
@@ -51,95 +62,55 @@ function imagePath(basePath, fileName) {
   return `/images/${basePath}/${fileName}`;
 }
 
-function createWork({
-  slug,
-  title,
-  year,
-  tags,
-  dimension = null,
-  assetPath = slug,
-  blurb = "blurb.txt",
-  description = "description.txt",
-  cover = "cover.jpg",
-  coverPosition = "center center",
-}) {
+function textPath(assetPath, fileName, fallback) {
+  if (fileName === null) {
+    return null;
+  }
+
+  return imagePath(assetPath, fileName ?? fallback);
+}
+
+function createWork(modulePath, manifest) {
+  const assetPath = assetPathFromManifestPath(modulePath);
+  const cover = manifest.cover ?? "cover.jpg";
   const { coverImage, images } = resolveImages(assetPath, cover);
 
   return {
-    slug,
-    title,
-    year,
-    tags,
-    dimension,
-    blurbPath: blurb ? imagePath(assetPath, blurb) : null,
-    descriptionPath: description ? imagePath(assetPath, description) : null,
+    slug: manifest.slug,
+    title: manifest.title,
+    year: manifest.year,
+    order: manifest.order ?? null,
+    tags: manifest.tags ?? [],
+    dimension: manifest.dimension ?? null,
+    assetPath,
+    blurbPath: textPath(assetPath, manifest.blurb, "blurb.txt"),
+    descriptionPath: textPath(
+      assetPath,
+      manifest.description,
+      "description.txt",
+    ),
     coverImage,
-    coverPosition,
+    coverPosition: manifest.coverPosition ?? "center center",
     images,
   };
 }
 
-export const works = [
-  createWork({
-    slug: "light-steppe",
-    title: "LightSteppe",
-    year: "2026",
-    tags: ["lamp", "sculpture", "object", "translucent", "wood", "dowels", "pyramid", "nightlight", "light", "glow", "stacked", "surface", "planes", "vibration", "architectural"],
-    dimension: "30.5 x 30.5 x 12.7 cm",
-    cover: "cover.jpg",
-  }),
-  createWork({
-    slug: "rib-rock",
-    title: "RibRock",
-    year: "2026",
-    tags: ["stone", "lamp", "sculpture", "carved", "light", "glow", "vertical", "architectural", "base", "surface"],
-    dimension: "28 x 18 x 18 cm",
-    cover: "cover.jpg",
-  }),
-  createWork({
-    slug: "shell-lamp",
-    title: "ShellLamp",
-    year: "2026",
-    tags: ["shell", "lamp", "sculpture", "light", "glow", "found-material", "obelisk", "coral", "framing", "ornament", "stacked"],
-    dimension: "34 x 13 x 8 cm",
-    cover: "cover.jpg",
-  }),
-  createWork({
-    slug: "little-guys",
-    title: "LittleGuys",
-    year: "2026",
-    tags: ["figure", "coconut-fiber", "provisional", "narrative", "mysticism", "animate"],
-    dimension: "61 x 61 x 8 cm",
-    cover: "cover.png",
-  }),
-  createWork({
-    slug: "root-nightlight",
-    title: "RootNightlight",
-    year: "2026",
-    tags: ["oat-grass-roots", "lamp", "sculpture", "nightlight", "light", "fabric", "tapestry", "grown", "structure"],
-    assetPath: "grown-tapestry/root-nightlight",
-    cover: "IMG_3310.JPG",
-  }),
-  createWork({
-    slug: "shell-lamp-2",
-    title: "ShellLamp2",
-    year: "2026",
-    tags: ["shell", "lamp", "sculpture", "glow", "orbital", "planetary", "swirl", "mercuric"],
-    cover: "cover.jpg",
-  }),
-  createWork({
-    slug: "static-fabric",
-    title: "StaticFabric",
-    year: "2026",
-    tags: ["oat-grass-roots", "sculpture", "object", "fabric", "tapestry", "grown", "process", "surface", "framing", "suspended"],
-    assetPath: "grown-tapestry/static-fabric",
-    cover: "cover.png",
-  }),
-  createWork({
-    slug: "eye-seeds",
-    title: "EyeSeeds",
-    year: "2026",
-    tags: ["painted", "seed-pod", "watchful", "animate", "tropical", "color", "found-material", "surface"],
-    cover: "cover.JPG",
-  }),
-];
+function compareWorks(left, right) {
+  const leftOrder =
+    typeof left.order === "number" ? left.order : Number.POSITIVE_INFINITY;
+  const rightOrder =
+    typeof right.order === "number" ? right.order : Number.POSITIVE_INFINITY;
+
+  if (leftOrder !== rightOrder) {
+    return leftOrder - rightOrder;
+  }
+
+  return left.title.localeCompare(right.title, undefined, {
+    numeric: true,
+    sensitivity: "base",
+  });
+}
+
+export const works = Object.entries(workModules)
+  .map(([modulePath, manifest]) => createWork(modulePath, manifest))
+  .sort(compareWorks);

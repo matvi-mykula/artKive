@@ -1,6 +1,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
+export const DEFAULT_NEW_TAG_TYPES = ["uncategorized"];
+
 export function parseArgs(argv) {
   const args = {};
 
@@ -45,12 +47,30 @@ export function splitList(value) {
     .filter(Boolean);
 }
 
-function quoteTag(tagId) {
-  return /^[a-zA-Z_$][\w$]*$/.test(tagId) ? tagId : `'${tagId}'`;
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function escapeJsString(value) {
+  return value.replaceAll("\\", "\\\\").replaceAll('"', '\\"');
+}
+
+function quoteObjectKey(key) {
+  return /^[a-zA-Z_$][\w$]*$/.test(key)
+    ? key
+    : `"${escapeJsString(key)}"`;
 }
 
 function tagLabel(tagId) {
   return tagId.replaceAll("-", " ");
+}
+
+function formatTagEntry(tagId) {
+  return `  ${quoteObjectKey(tagId)}: { id: "${escapeJsString(
+    tagId,
+  )}", label: "${escapeJsString(tagLabel(tagId))}", types: ${JSON.stringify(
+    DEFAULT_NEW_TAG_TYPES,
+  )} },`;
 }
 
 export function ensureTagsSource(tagsSource, tagIds) {
@@ -64,20 +84,14 @@ export function ensureTagsSource(tagsSource, tagIds) {
 
   const missingTags = tagIds.filter(
     (tagId) =>
-      !new RegExp(`id:\\s*'${tagId.replaceAll("'", "\\'")}'`).test(tagsSource),
+      !new RegExp(`id:\\s*["']${escapeRegExp(tagId)}["']`).test(tagsSource),
   );
 
   if (!missingTags.length) {
     return tagsSource;
   }
 
-  const insertText = missingTags
-    .map(
-      (tagId) =>
-        `  ${quoteTag(tagId)}: { id: '${tagId}', label: '${tagLabel(tagId)}' },`,
-    )
-    .join("\n");
-
+  const insertText = missingTags.map((tagId) => formatTagEntry(tagId)).join("\n");
   const nextTagsObject = tagsObjectMatch[0].replace(
     /\n\};$/,
     `\n${insertText}\n};`,
@@ -90,107 +104,19 @@ export function ensureTagsSource(tagsSource, tagIds) {
   );
 }
 
-function formatStringField(name, value) {
-  return value ? `    ${name}: "${value}",\n` : "";
-}
-
-function formatTags(tags) {
-  return `    tags: [${tags.map((tag) => `"${tag}"`).join(", ")}],\n`;
-}
-
-export function formatWorkEntry(work) {
-  return `  createWork({
-    slug: "${work.slug}",
-    title: "${work.title}",
-    year: "${work.year}",
-${formatTags(work.tags)}${formatStringField("dimension", work.dimension)}${formatStringField("assetPath", work.assetPath && work.assetPath !== work.slug ? work.assetPath : null)}${formatStringField("cover", work.cover ?? "cover.jpg")}${formatStringField("coverPosition", work.coverPosition)}
-  }),`;
-}
-
-export function insertWorkEntry(dataSource, work) {
-  if (new RegExp(`slug:\\s*"${work.slug}"`).test(dataSource)) {
-    throw new Error(`Work "${work.slug}" already exists.`);
-  }
-
-  return dataSource.replace(
-    /export const works = \[\s*/,
-    `export const works = [\n${formatWorkEntry(work)}\n`,
-  );
-}
-
-function findWorkEntry(source, slug) {
-  const pattern = /  createWork\(\{[\s\S]*?\n  \}\),/g;
-  let match;
-
-  while ((match = pattern.exec(source)) !== null) {
-    if (new RegExp(`slug:\\s*"${slug}"`).test(match[0])) {
-      return match;
-    }
-  }
-
-  return null;
-}
-
-function readStringField(source, fieldName, fallback = null) {
-  return (
-    source.match(new RegExp(`${fieldName}:\\s*"([^"]+)"`))?.[1] ?? fallback
-  );
-}
-
-function readTags(source) {
-  return (
-    source
-      .match(/tags:\s*\[([^\]]*)\]/)?.[1]
-      .match(/"([^"]+)"/g)
-      ?.map((tag) => tag.slice(1, -1)) ?? []
-  );
-}
-
-export function updateWorkEntry(dataSource, slug, updates) {
-  const match = findWorkEntry(dataSource, slug);
-  if (!match) {
-    throw new Error(`Work "${slug}" does not exist.`);
-  }
-
-  const current = match[0];
-  const nextWork = {
-    slug,
-    title: updates.title ?? readStringField(current, "title"),
-    year: updates.year ?? readStringField(current, "year"),
-    tags: updates.tags ?? readTags(current),
-    dimension: updates.dimension ?? readStringField(current, "dimension"),
-    assetPath: updates.assetPath ?? readStringField(current, "assetPath", slug),
-    cover: updates.cover ?? readStringField(current, "cover", "cover.jpg"),
-    coverPosition:
-      updates.coverPosition ?? readStringField(current, "coverPosition"),
-  };
-
-  return dataSource.slice(0, match.index) +
-    formatWorkEntry(nextWork) +
-    dataSource.slice(match.index + current.length);
-}
-
-export async function readProjectFiles(root) {
-  const dataPath = path.join(root, "src", "data.js");
+export async function readTagsFile(root) {
   const tagsPath = path.join(root, "src", "tags.js");
-  const [dataSource, tagsSource] = await Promise.all([
-    fs.readFile(dataPath, "utf8"),
-    fs.readFile(tagsPath, "utf8"),
-  ]);
+  const tagsSource = await fs.readFile(tagsPath, "utf8");
 
-  return { dataPath, tagsPath, dataSource, tagsSource };
+  return { tagsPath, tagsSource };
 }
 
-export async function writeProjectFiles({
-  dataPath,
-  tagsPath,
-  dataSource,
-  tagsSource,
-}) {
-  await Promise.all([
-    fs.writeFile(dataPath, dataSource),
-    fs.writeFile(tagsPath, tagsSource),
-  ]);
+export async function writeTagsFile({ tagsPath, tagsSource }) {
+  await fs.writeFile(tagsPath, tagsSource);
+}
+
+export async function writeJsonFile(filePath, value) {
+  await fs.writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`);
 }
 
 export function requireArgs(args, names) {

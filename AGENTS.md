@@ -6,8 +6,8 @@ Use the `artdisplay-image-workflow` skill when:
 - renaming image files into the site convention
 - optimizing images with `sharp`
 - adding or updating `blurb.txt` or `description.txt`
-- updating work metadata in `src/data.js`
-- updating tags in `src/tags.js`
+- updating work metadata in `public/images/**/work.json`
+- updating typed tags in `src/tags.js`
 
 The canonical copy of this skill lives in this repo at
 `docs/skills/artdisplay-image-workflow/SKILL.md`. If the named skill is not

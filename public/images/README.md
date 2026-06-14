@@ -2,45 +2,86 @@ Image workflow for this project:
 
 Prefer the repo scripts for repeatable updates:
 
-- `npm run ingest:work` creates a new work folder, optimizes images, writes copy, updates metadata, adds missing tags, and validates the archive.
-- `npm run update:work` updates existing work metadata and copy, adds missing tags, and validates the archive.
+- `npm run ingest:work` creates a new work folder, optimizes images, writes copy, writes `work.json`, adds missing typed tags, and validates the archive.
+- `npm run update:work` updates an existing work manifest and copy, adds missing typed tags, and validates the archive.
 - `npm run validate:archive` checks the archive without changing files.
 
 Manual workflow:
 
-1. Create one folder per work inside public/images/.
-2. Use the work slug as the folder name.
-3. Put a cover image and any additional images in that folder.
-4. Set the work folder path and cover filename in src/data.js.
-5. Add a blurb.txt file for the archive card text and a description.txt file for the work page text.
+1. Create one folder per work inside `public/images/`.
+2. Use the work slug as the folder name unless a nested grouping is useful.
+3. Add a `work.json` manifest in the work folder.
+4. Put a cover image and any additional images in that folder.
+5. Add `blurb.txt` for archive-card text and `description.txt` for the work page text.
 
 Recommended structure:
 
+```txt
+public/images/night-window/work.json
 public/images/night-window/cover.jpg
 public/images/night-window/01.jpg
 public/images/night-window/02.jpg
+public/images/field-notes/work.json
 public/images/field-notes/cover.jpg
+```
+
+Manifest example:
+
+```json
+{
+  "slug": "night-window",
+  "title": "NightWindow",
+  "year": "2026",
+  "order": 90,
+  "dimension": "10 x 10 x 10 cm",
+  "cover": "cover.jpg",
+  "coverPosition": "center center",
+  "tags": ["lamp", "wood", "glow"]
+}
+```
+
+Required manifest fields:
+
+- `slug`
+- `title`
+- `year`
+- `tags`
+
+Optional manifest fields:
+
+- `order`
+- `dimension`
+- `cover`
+- `coverPosition`
+- `blurb`
+- `description`
 
 Text files:
 
-- store them beside the images as blurb.txt and description.txt
-- use [[tag]] for a linked tag word
-- use [[tag|visible phrase]] when the linked phrase should differ from the tag slug
+- store them beside the images as `blurb.txt` and `description.txt`
+- use `[[tag]]` for a linked tag word
+- use `[[tag|visible phrase]]` when the linked phrase should differ from the tag slug
 
 Example:
 
-blurb.txt
+```txt
 This [[lamp]] is built from cut [[stone]].
-
-description.txt
-This [[lamp]] is built from cut [[stone]]. The piece sits between object and [[sculpture]].
+```
 
 Image discovery:
 
-- all image files in a work folder are included automatically on the work page
-- the file named in src/data.js as `cover` is used as the card cover and shown first in the image sequence
-- additional images are sorted automatically by filename
-- `blurb` and `description` can be set to `null` in src/data.js when a work should appear without one or both text files
+- `src/data.js` assembles work data from `work.json` files and image folders.
+- all image files in a work folder are included automatically on the work page.
+- the file named by `cover` in `work.json` is used as the card cover and shown first in the image sequence.
+- additional images are sorted automatically by filename.
+- `blurb` and `description` can be set to `null` in `work.json` when a work should appear without one or both text files.
+
+Tag rules:
+
+- tags are rich records in `src/tags.js`
+- each tag must have `id`, `label`, and `types`
+- `types` is always an array, even when a tag only has one type
+- missing tags added by scripts use `types: ["uncategorized"]` until classified
 
 Optimization workflow:
 
@@ -56,5 +97,3 @@ Recommended filename rules:
 - no spaces
 - use jpg for photos unless png is necessary
 - keep the longest edge around 1600-2200px
-
-The current folders include SVG placeholders so the app works before you add real artwork.

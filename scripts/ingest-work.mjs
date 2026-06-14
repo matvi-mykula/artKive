@@ -4,12 +4,12 @@ import { pathToFileURL } from "node:url";
 import sharp from "sharp";
 import {
   ensureTagsSource,
-  insertWorkEntry,
   parseArgs,
-  readProjectFiles,
+  readTagsFile,
   requireArgs,
   splitList,
-  writeProjectFiles,
+  writeJsonFile,
+  writeTagsFile,
 } from "./archive-workflow.mjs";
 import { validateArchive } from "./validate-archive.mjs";
 
@@ -96,21 +96,36 @@ export async function ingestWork(root, options) {
     options.description ?? "",
   );
 
-  const projectFiles = await readProjectFiles(root);
   const work = {
     slug: options.slug,
     title: options.title,
     year: options.year,
     tags,
-    dimension: options.dimension ?? null,
-    assetPath,
     cover: "cover.jpg",
-    coverPosition: options["cover-position"] ?? null,
   };
 
-  projectFiles.dataSource = insertWorkEntry(projectFiles.dataSource, work);
-  projectFiles.tagsSource = ensureTagsSource(projectFiles.tagsSource, tags);
-  await writeProjectFiles(projectFiles);
+  if (options.dimension) {
+    work.dimension = options.dimension;
+  }
+
+  if (options.order !== undefined) {
+    const order = Number(options.order);
+    if (!Number.isFinite(order)) {
+      throw new Error("--order must be a number.");
+    }
+
+    work.order = order;
+  }
+
+  if (options["cover-position"]) {
+    work.coverPosition = options["cover-position"];
+  }
+
+  await writeJsonFile(path.join(workDirectory, "work.json"), work);
+
+  const tagsFile = await readTagsFile(root);
+  tagsFile.tagsSource = ensureTagsSource(tagsFile.tagsSource, tags);
+  await writeTagsFile(tagsFile);
 
   const findings = await validateArchive(root);
   if (findings.some((result) => result.level === "error")) {
