@@ -242,7 +242,9 @@ export function ensureTagsSource(tagsSource, tagIds) {
 
   const missingTags = tagIds.filter(
     (tagId) =>
-      !new RegExp(`id:\\s*["']${escapeRegExp(tagId)}["']`).test(tagsSource),
+      !new RegExp(`id:\\s*["']${escapeRegExp(tagId)}["']`).test(
+        tagsObjectMatch[0],
+      ),
   );
 
   if (!missingTags.length) {

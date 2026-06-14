@@ -171,3 +171,26 @@ export const tags = {
 
   assert(messages.includes('Tag "lamp" has unknown field "visible".'));
 });
+
+test("invalid manifest tags shape is reported without throwing", async () => {
+  const root = await createFixture({
+    tagsSource: validTags,
+    files: {
+      "public/images/night-lamp/work.json": {
+        slug: "night-lamp",
+        title: "NightLamp",
+        year: "2026",
+        tags: { lamp: true },
+      },
+      "public/images/night-lamp/cover.jpg": "fake image",
+      "public/images/night-lamp/blurb.txt": "[[lamp]]",
+      "public/images/night-lamp/description.txt": "[[lamp]]",
+    },
+  });
+
+  const messages = (await validateArchive(root)).map(
+    (result) => result.message,
+  );
+
+  assert(messages.includes("Missing tags."));
+});

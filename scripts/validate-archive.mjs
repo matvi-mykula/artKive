@@ -477,7 +477,8 @@ export async function validateArchive(root = process.cwd()) {
       continue;
     }
 
-    for (const tagId of manifest.tags ?? []) {
+    const manifestTags = Array.isArray(manifest.tags) ? manifest.tags : [];
+    for (const tagId of manifestTags) {
       if (!tagSet.has(tagId)) {
         findings.push(
           finding({

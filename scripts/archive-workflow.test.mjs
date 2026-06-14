@@ -62,6 +62,23 @@ export function getTag(tagId) {
   );
 });
 
+test("ensureTagsSource ignores matching ids in tagTypes", () => {
+  const source = `export const tagTypes = {
+  location: { id: "location", label: "Location" },
+};
+
+export const tags = {
+  lamp: { id: "lamp", label: "lamp", types: ["form"] },
+};`;
+
+  const next = ensureTagsSource(source, ["location"]);
+
+  assert.match(
+    next,
+    /export const tags = \{[\s\S]*location: \{ id: "location", label: "location", types: \["uncategorized"\] \},\n\};/,
+  );
+});
+
 test("inferTagIdsFromText finds existing labels, aliases, camel-case, and inline tags", () => {
   const tags = {
     lamp: { id: "lamp", label: "lamp", types: ["form"] },
