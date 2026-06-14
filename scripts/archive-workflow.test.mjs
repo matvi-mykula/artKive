@@ -2,7 +2,11 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   ensureTagsSource,
+  inferTagIdsFromText,
+  linkTextWithTags,
   parseArgs,
+  shouldAutoLinkText,
+  shouldInferTags,
   splitList,
 } from "./archive-workflow.mjs";
 
@@ -56,4 +60,58 @@ export function getTag(tagId) {
     next,
     /shell: \{ id: "shell", label: "shell", types: \["uncategorized"\] \},\n\};\n\nexport function getTag/,
   );
+});
+
+test("inferTagIdsFromText finds existing labels, aliases, camel-case, and inline tags", () => {
+  const tags = {
+    lamp: { id: "lamp", label: "lamp", types: ["form"] },
+    wood: { id: "wood", label: "wood", types: ["material"] },
+    glow: { id: "glow", label: "glow", types: ["phenomenon"] },
+    "found-material": {
+      id: "found-material",
+      label: "found material",
+      aliases: ["found object"],
+      types: ["material"],
+    },
+  };
+
+  assert.deepEqual(
+    inferTagIdsFromText(
+      "WoodLamp study with a found object and [[glow]].",
+      tags,
+    ),
+    ["wood", "lamp", "found-material", "glow"],
+  );
+});
+
+test("linkTextWithTags links the first visible term for each tag", () => {
+  const tags = {
+    lamp: { id: "lamp", label: "lamp", types: ["form"] },
+    wood: { id: "wood", label: "wood", types: ["material"] },
+  };
+
+  assert.equal(
+    linkTextWithTags("A wood lamp with a wood base.", ["wood", "lamp"], tags),
+    "A [[wood|wood]] [[lamp|lamp]] with a wood base.",
+  );
+});
+
+test("linkTextWithTags leaves already linked text alone", () => {
+  const tags = {
+    lamp: { id: "lamp", label: "lamp", types: ["form"] },
+    wood: { id: "wood", label: "wood", types: ["material"] },
+  };
+
+  assert.equal(
+    linkTextWithTags("A [[lamp]] with wood.", ["lamp", "wood"], tags),
+    "A [[lamp]] with wood.",
+  );
+});
+
+test("auto tagging and linking options parse booleans", () => {
+  assert.equal(shouldInferTags({}), true);
+  assert.equal(shouldInferTags({ tags: "lamp" }), false);
+  assert.equal(shouldInferTags({ tags: "lamp", "auto-tags": true }), true);
+  assert.equal(shouldAutoLinkText({ "auto-link-text": "yes" }), true);
+  assert.equal(shouldAutoLinkText({}), false);
 });

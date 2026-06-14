@@ -142,3 +142,32 @@ export const tags = {
 
   assert(messages.includes('Tag "lamp" uses unknown type "missing-type".'));
 });
+
+test("unknown tag fields are reported", async () => {
+  const root = await createFixture({
+    tagsSource: `export const tagTypes = {
+  form: { id: "form", label: "Form" },
+};
+
+export const tags = {
+  lamp: { id: "lamp", label: "lamp", types: ["form"], visible: true },
+};`,
+    files: {
+      "public/images/night-lamp/work.json": {
+        slug: "night-lamp",
+        title: "NightLamp",
+        year: "2026",
+        tags: ["lamp"],
+      },
+      "public/images/night-lamp/cover.jpg": "fake image",
+      "public/images/night-lamp/blurb.txt": "[[lamp]]",
+      "public/images/night-lamp/description.txt": "[[lamp]]",
+    },
+  });
+
+  const messages = (await validateArchive(root)).map(
+    (result) => result.message,
+  );
+
+  assert(messages.includes('Tag "lamp" has unknown field "visible".'));
+});

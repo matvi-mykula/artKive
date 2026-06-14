@@ -37,12 +37,37 @@ Before editing files, determine whether the requested work already has a
 - If the request cannot be expressed with a script option, make the smallest manual patch and still run validation afterward.
 - Do not split this into separate skills. Creation and updates share the same archive rules, validation rules, tag syntax, and metadata conventions.
 
+## Loose intake flow
+
+When the user provides a loose intake bundle, such as a few image paths, a name,
+and blurb or description copy, turn that into a complete work record before
+running validation.
+
+1. Inspect the supplied images when useful for material, form, process, quality,
+   motif, context, or location tags.
+2. Read the title, blurb, and description for existing vocabulary matches.
+3. Prefer existing tags from `src/tags.js`.
+4. Add new tags only when the work needs a meaningful archive term that does not
+   already exist.
+5. Give every new tag a real `types` array when confidence is high. The ingest
+   script can add missing tags as `types: ["uncategorized"]`, but that is a
+   temporary fallback, not the preferred final state.
+6. Add inline text links where they clarify the archive language:
+   - `[[tag-id]]`
+   - `[[tag-id|visible phrase]]`
+7. Do not write editorial `related` relationships during ordinary ingest unless
+   the relation is durable beyond one work. Co-occurrence is computed by the app.
+
+The ingest script can infer existing tags from title, blurb, description, and
+inline tag syntax. It cannot semantically infer tags from images by itself; image
+interpretation is the agent's responsibility before invoking the script.
+
 ## Create flow
 
 Use the ingest script for new works whenever possible:
 
 ```bash
-npm run ingest:work -- --slug <slug> --title <Title> --year <year> --tags tag-a,tag-b --dimension "<dimensions>" --images <path-a>,<path-b> --cover-index 0 --blurb "<text>" --description "<text>"
+npm run ingest:work -- --slug <slug> --title <Title> --year <year> --images <path-a>,<path-b> --cover-index 0 --tags tag-a,tag-b --blurb "<text>" --description "<text>"
 ```
 
 Important options:
@@ -50,7 +75,9 @@ Important options:
 - `--slug`: route slug, for example `light-steppe`
 - `--title`: display title, for example `LightSteppe`
 - `--year`: archive year
-- `--tags`: comma-separated tag ids; missing tags are added to `src/tags.js` with `types: ["uncategorized"]`
+- `--tags`: optional comma-separated tag ids; missing tags are added to `src/tags.js` with `types: ["uncategorized"]`
+- `--auto-tags`: merge text-inferred existing tags even when `--tags` is provided
+- `--auto-link-text`: wrap matching plain-text terms in `[[tag-id|visible phrase]]`
 - `--dimension`: optional dimensions string
 - `--order`: optional numeric archive sort order
 - `--images`: comma-separated source image paths
@@ -63,6 +90,10 @@ Important options:
 The ingest script creates the work folder, optimizes images to the house naming
 pattern, writes text files, writes `work.json`, adds missing tags, and runs
 archive validation.
+
+If `--tags` is omitted, the script tries to infer existing tags from `--title`,
+`--blurb`, `--description`, and any inline tags already present in the copy. If
+no tags can be inferred, provide `--tags` explicitly.
 
 ## Update flow
 
@@ -154,8 +185,6 @@ Optional tag fields:
 - `description`
 - `aliases`
 - `related`
-- `color`
-- `visible`
 
 Every type in `types` must exist in `tagTypes`. Every tag id used by work
 metadata or text must exist in `tags`.

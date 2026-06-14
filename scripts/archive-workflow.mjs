@@ -1,7 +1,9 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 
 export const DEFAULT_NEW_TAG_TYPES = ["uncategorized"];
+const INLINE_TAG_PATTERN = /\[\[([^|\]]+)(?:\|[^\]]+)?\]\]/g;
 
 export function parseArgs(argv) {
   const args = {};
@@ -47,6 +49,20 @@ export function splitList(value) {
     .filter(Boolean);
 }
 
+function uniqueList(items) {
+  return [...new Set(items.filter(Boolean))];
+}
+
+function optionEnabled(value) {
+  return (
+    value === true ||
+    value === "" ||
+    String(value).toLowerCase() === "true" ||
+    String(value).toLowerCase() === "yes" ||
+    String(value) === "1"
+  );
+}
+
 function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -65,12 +81,154 @@ function tagLabel(tagId) {
   return tagId.replaceAll("-", " ");
 }
 
+function normalizeSearchText(value) {
+  return String(value)
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/['’]/g, "")
+    .replace(/[^a-zA-Z0-9]+/g, " ")
+    .toLowerCase()
+    .trim();
+}
+
+function tagSearchTerms(tagId, tag) {
+  return uniqueList([
+    tagId,
+    tag?.label,
+    ...(Array.isArray(tag?.aliases) ? tag.aliases : []),
+  ]);
+}
+
+function findNormalizedTermIndex(normalizedSource, term) {
+  const normalizedTerm = normalizeSearchText(term);
+  if (!normalizedTerm) {
+    return -1;
+  }
+
+  return ` ${normalizedSource} `.indexOf(` ${normalizedTerm} `);
+}
+
+function findInlineTagIds(source) {
+  return [...String(source ?? "").matchAll(INLINE_TAG_PATTERN)].map((match) => ({
+    tagId: match[1].trim(),
+    index: match.index,
+  }));
+}
+
 function formatTagEntry(tagId) {
   return `  ${quoteObjectKey(tagId)}: { id: "${escapeJsString(
     tagId,
   )}", label: "${escapeJsString(tagLabel(tagId))}", types: ${JSON.stringify(
     DEFAULT_NEW_TAG_TYPES,
   )} },`;
+}
+
+export async function readTagRegistry(root) {
+  const tagsPath = path.join(root, "src", "tags.js");
+  const tagsUrl = `${pathToFileURL(tagsPath).href}?cache=${Date.now()}-${Math.random()}`;
+  const tagModule = await import(tagsUrl);
+
+  return {
+    tags: tagModule.tags ?? {},
+    tagTypes: tagModule.tagTypes ?? {},
+  };
+}
+
+export function inferTagIdsFromText(source, tags) {
+  const normalizedSource = normalizeSearchText(source);
+  const matches = new Map();
+
+  for (const inlineTag of findInlineTagIds(source)) {
+    matches.set(inlineTag.tagId, {
+      tagId: inlineTag.tagId,
+      index: inlineTag.index,
+    });
+  }
+
+  Object.entries(tags).forEach(([tagId, tag], order) => {
+    const termIndex = tagSearchTerms(tagId, tag).reduce((lowestIndex, term) => {
+      const nextIndex = findNormalizedTermIndex(normalizedSource, term);
+      if (nextIndex === -1) {
+        return lowestIndex;
+      }
+
+      return lowestIndex === -1 ? nextIndex : Math.min(lowestIndex, nextIndex);
+    }, -1);
+
+    if (termIndex === -1) {
+      return;
+    }
+
+    const existing = matches.get(tagId);
+    if (!existing || termIndex < existing.index) {
+      matches.set(tagId, { tagId, index: termIndex, order });
+    }
+  });
+
+  return [...matches.values()]
+    .sort((left, right) => {
+      if (left.index !== right.index) {
+        return left.index - right.index;
+      }
+
+      return (left.order ?? 0) - (right.order ?? 0);
+    })
+    .map((match) => match.tagId);
+}
+
+export function linkTextWithTags(source, tagIds, tags) {
+  if (!source || source.includes("[[")) {
+    return source ?? "";
+  }
+
+  let nextSource = source;
+  const linkedTags = new Set();
+  const candidates = tagIds
+    .flatMap((tagId) => {
+      const tag = tags[tagId];
+      if (!tag) {
+        return [];
+      }
+
+      return tagSearchTerms(tagId, tag).map((term) => ({
+        tagId,
+        term,
+        normalizedLength: normalizeSearchText(term).length,
+      }));
+    })
+    .filter((candidate) => candidate.normalizedLength > 1)
+    .sort((left, right) => right.normalizedLength - left.normalizedLength);
+
+  for (const candidate of candidates) {
+    if (linkedTags.has(candidate.tagId)) {
+      continue;
+    }
+
+    const termPattern = escapeRegExp(candidate.term).replace(/\s+/g, "\\s+");
+    const pattern = new RegExp(
+      `(^|[^A-Za-z0-9])(${termPattern})(?=$|[^A-Za-z0-9])`,
+      "i",
+    );
+    let linked = false;
+
+    nextSource = nextSource.replace(pattern, (match, prefix, phrase) => {
+      linked = true;
+      return `${prefix}[[${candidate.tagId}|${phrase}]]`;
+    });
+
+    if (linked) {
+      linkedTags.add(candidate.tagId);
+    }
+  }
+
+  return nextSource;
+}
+
+export function shouldInferTags(options) {
+  return !options.tags || optionEnabled(options["auto-tags"]);
+}
+
+export function shouldAutoLinkText(options) {
+  return optionEnabled(options["auto-link-text"]);
 }
 
 export function ensureTagsSource(tagsSource, tagIds) {

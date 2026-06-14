@@ -5,6 +5,14 @@ import { pathToFileURL } from "node:url";
 const IMAGE_PATTERN = /\.(?:png|jpe?g|svg|webp|heic)$/i;
 const INLINE_TAG_PATTERN = /\[\[([^|\]]+)(?:\|[^\]]+)?\]\]/g;
 const MANIFEST_FILE = "work.json";
+const ALLOWED_TAG_FIELDS = new Set([
+  "id",
+  "label",
+  "types",
+  "description",
+  "aliases",
+  "related",
+]);
 
 function finding({ level = "error", work = null, message }) {
   return { level, work, message };
@@ -216,6 +224,16 @@ function validateTags({ tagsSource, tags, tagTypes }, findings) {
       continue;
     }
 
+    for (const fieldName of Object.keys(tag)) {
+      if (!ALLOWED_TAG_FIELDS.has(fieldName)) {
+        findings.push(
+          finding({
+            message: `Tag "${tagId}" has unknown field "${fieldName}".`,
+          }),
+        );
+      }
+    }
+
     if (tag.id !== tagId) {
       findings.push(finding({ message: `Tag "${tagId}" has mismatched id.` }));
     }
@@ -268,14 +286,6 @@ function validateTags({ tagsSource, tags, tagTypes }, findings) {
       findings.push(
         finding({ message: `Tag "${tagId}" has invalid description.` }),
       );
-    }
-
-    if (tag.color !== undefined && typeof tag.color !== "string") {
-      findings.push(finding({ message: `Tag "${tagId}" has invalid color.` }));
-    }
-
-    if (tag.visible !== undefined && typeof tag.visible !== "boolean") {
-      findings.push(finding({ message: `Tag "${tagId}" has invalid visible flag.` }));
     }
   }
 

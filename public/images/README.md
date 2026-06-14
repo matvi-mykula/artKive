@@ -6,6 +6,13 @@ Prefer the repo scripts for repeatable updates:
 - `npm run update:work` updates an existing work manifest and copy, adds missing typed tags, and validates the archive.
 - `npm run validate:archive` checks the archive without changing files.
 
+For loose intake, provide images plus a title/name and copy. `ingest:work` can
+infer existing tags from `--title`, `--blurb`, `--description`, and inline tag
+syntax when `--tags` is omitted. Use `--auto-tags` to merge inferred text tags
+with explicit tags, and `--auto-link-text` to wrap matching plain-text terms as
+inline tag links. Image-derived tags still need to be chosen by the person or
+agent reviewing the photos.
+
 Manual workflow:
 
 1. Create one folder per work inside `public/images/`.
@@ -82,6 +89,7 @@ Tag rules:
 - each tag must have `id`, `label`, and `types`
 - `types` is always an array, even when a tag only has one type
 - missing tags added by scripts use `types: ["uncategorized"]` until classified
+- optional tag fields are `description`, `aliases`, and `related`
 
 Optimization workflow:
 

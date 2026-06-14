@@ -4,9 +4,14 @@ import { pathToFileURL } from "node:url";
 import sharp from "sharp";
 import {
   ensureTagsSource,
+  inferTagIdsFromText,
+  linkTextWithTags,
   parseArgs,
+  readTagRegistry,
   readTagsFile,
   requireArgs,
+  shouldAutoLinkText,
+  shouldInferTags,
   splitList,
   writeJsonFile,
   writeTagsFile,
@@ -40,9 +45,17 @@ async function optimizeImage(input, output, { max, quality }) {
 }
 
 export async function ingestWork(root, options) {
-  requireArgs(options, ["slug", "title", "year", "tags", "images"]);
+  requireArgs(options, ["slug", "title", "year", "images"]);
 
-  const tags = splitList(options.tags);
+  const tagRegistry = await readTagRegistry(root);
+  const suppliedTags = splitList(options.tags);
+  const inferredTags = shouldInferTags(options)
+    ? inferTagIdsFromText(
+        [options.title, options.blurb, options.description].join("\n"),
+        tagRegistry.tags,
+      )
+    : [];
+  const tags = [...new Set([...suppliedTags, ...inferredTags])];
   const images = splitList(options.images).map((imagePath) =>
     path.resolve(root, imagePath),
   );
@@ -51,9 +64,17 @@ export async function ingestWork(root, options) {
   const quality = Number(options.quality ?? 80);
   const assetPath = options["asset-path"] ?? options.slug;
   const workDirectory = path.join(root, "public", "images", ...assetPath.split("/"));
+  const blurb = shouldAutoLinkText(options)
+    ? linkTextWithTags(options.blurb ?? "", tags, tagRegistry.tags)
+    : options.blurb ?? "";
+  const description = shouldAutoLinkText(options)
+    ? linkTextWithTags(options.description ?? "", tags, tagRegistry.tags)
+    : options.description ?? "";
 
   if (!tags.length) {
-    throw new Error("At least one tag is required.");
+    throw new Error(
+      "At least one tag is required. Provide --tags or copy that matches existing tags.",
+    );
   }
 
   if (!images.length) {
@@ -90,11 +111,8 @@ export async function ingestWork(root, options) {
     imageNumber += 1;
   }
 
-  await fs.writeFile(path.join(workDirectory, "blurb.txt"), options.blurb ?? "");
-  await fs.writeFile(
-    path.join(workDirectory, "description.txt"),
-    options.description ?? "",
-  );
+  await fs.writeFile(path.join(workDirectory, "blurb.txt"), blurb);
+  await fs.writeFile(path.join(workDirectory, "description.txt"), description);
 
   const work = {
     slug: options.slug,
