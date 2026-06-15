@@ -1,11 +1,11 @@
 import { ArchiveCard } from './ArchiveCard';
-import { TagMap } from './TagMap';
+import { TagForceMap } from './TagForceMap';
 import { works } from '../data';
 
 export function TagPage({ tag }) {
   return (
     <main className="page-shell">
-      <TagMap selectedTagId={tag.slug} works={works} />
+      <TagForceMap selectedTagId={tag.slug} works={works} />
 
       <section className="archive-grid" aria-label={`${tag.label} works`}>
         {tag.works.map((work) => (
