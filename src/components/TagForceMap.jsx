@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ForceGraph2D from "react-force-graph-2d";
 import { navigate } from "../lib/router";
 import {
-  getLinkNodeIds,
   getTagFocus,
   getTagNetwork,
   isLinkConnectedTo,
@@ -24,6 +23,8 @@ const TYPE_COLORS = {
 const FOCUS_ZOOM = 2.35;
 const MOBILE_FOCUS_ZOOM = 1.55;
 const FOCUS_MS = 650;
+const MAX_LABEL_LINE_LENGTH = 12;
+const MAX_LABEL_LINES = 2;
 
 function cssVar(name, fallback) {
   if (typeof window === "undefined") {
@@ -52,6 +53,56 @@ function getNodeColor(node) {
 
 function formatWorkCount(count) {
   return `${count} work${count === 1 ? "" : "s"}`;
+}
+
+function splitLabel(label) {
+  const words = label.split(/\s+/).filter(Boolean);
+  if (words.length <= 1 || label.length <= MAX_LABEL_LINE_LENGTH) {
+    return [label];
+  }
+
+  const lines = [];
+  let currentLine = "";
+
+  words.forEach((word) => {
+    const nextLine = currentLine ? `${currentLine} ${word}` : word;
+    if (nextLine.length <= MAX_LABEL_LINE_LENGTH || !currentLine) {
+      currentLine = nextLine;
+      return;
+    }
+
+    lines.push(currentLine);
+    currentLine = word;
+  });
+
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+
+  if (lines.length <= MAX_LABEL_LINES) {
+    return lines;
+  }
+
+  return [
+    lines[0],
+    lines.slice(1).join(" "),
+  ];
+}
+
+function drawRoundedRect(ctx, x, y, width, height, radius) {
+  const safeRadius = Math.min(radius, width / 2, height / 2);
+
+  ctx.beginPath();
+  ctx.moveTo(x + safeRadius, y);
+  ctx.lineTo(x + width - safeRadius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + safeRadius);
+  ctx.lineTo(x + width, y + height - safeRadius);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - safeRadius, y + height);
+  ctx.lineTo(x + safeRadius, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - safeRadius);
+  ctx.lineTo(x, y + safeRadius);
+  ctx.quadraticCurveTo(x, y, x + safeRadius, y);
+  ctx.closePath();
 }
 
 function useElementSize() {
@@ -83,131 +134,125 @@ function useElementSize() {
   return [ref, size];
 }
 
-function nodeRadius(node, selectedTagId, activeNeighborIds, hoveredTagId) {
+function getNodeState(node, selectedTagId, activeNeighborIds) {
   const isSelected = node.id === selectedTagId;
-  const isHovered = node.id === hoveredTagId;
   const isActiveNeighbor = activeNeighborIds.has(node.id);
-  const usageRadius = Math.min(5.4, 2.8 + node.workCount * 0.75);
 
   if (isSelected) {
-    return usageRadius + 4.8;
-  }
-
-  if (isHovered) {
-    return usageRadius + 3.4;
+    return "selected";
   }
 
   if (isActiveNeighbor) {
-    return usageRadius + 1.8;
+    return "related";
   }
 
-  return Math.max(3.2, usageRadius);
+  return "idle";
 }
 
-function shouldShowNodeLabel(node, selectedTagId, activeNeighborIds, hoveredTagId, scale) {
-  if (node.id === selectedTagId || node.id === hoveredTagId) {
-    return true;
-  }
+function getBubbleMetrics(node, state, ctx, scale) {
+  const labelLines = splitLabel(node.label);
+  const screenFontSize = state === "selected" ? 12 : state === "related" ? 10.5 : 9;
+  const fontSize = screenFontSize / scale;
+  const weight = state === "idle" ? 500 : 700;
+  const paddingX = (state === "selected" ? 13 : state === "related" ? 10 : 8) / scale;
+  const paddingY = (state === "selected" ? 8 : state === "related" ? 7 : 6) / scale;
+  const minWidth = (state === "selected" ? 68 : state === "related" ? 54 : 44) / scale;
+  const minHeight = (state === "selected" ? 40 : state === "related" ? 34 : 30) / scale;
+  const lineHeight = fontSize * 1.08;
 
-  if (activeNeighborIds.has(node.id) && scale > 0.58) {
-    return true;
-  }
+  ctx.font = `${weight} ${fontSize}px Arial, sans-serif`;
 
-  return node.workCount > 1 && scale > 0.9;
+  const textWidth = Math.max(...labelLines.map((line) => ctx.measureText(line).width));
+  const width = Math.max(minWidth, textWidth + paddingX * 2);
+  const height = Math.max(minHeight, labelLines.length * lineHeight + paddingY * 2);
+
+  return {
+    fontSize,
+    height,
+    labelLines,
+    lineHeight,
+    radius: height / 2,
+    weight,
+    width,
+  };
 }
 
-function paintNode({
-  activeNeighborIds,
-  colors,
-  hoveredTagId,
-  node,
-  selectedTagId,
-  ctx,
-  scale,
-}) {
-  const isSelected = node.id === selectedTagId;
-  const isHovered = node.id === hoveredTagId;
-  const isActiveNeighbor = activeNeighborIds.has(node.id);
+function paintNode({ activeNeighborIds, colors, node, selectedTagId, ctx, scale }) {
+  const state = getNodeState(node, selectedTagId, activeNeighborIds);
   const baseColor = getNodeColor(node);
-  const radius = nodeRadius(node, selectedTagId, activeNeighborIds, hoveredTagId);
-  const alpha = isSelected || isHovered ? 1 : isActiveNeighbor ? 0.88 : 0.38;
-  const strokeAlpha = isSelected || isHovered ? 0.95 : isActiveNeighbor ? 0.55 : 0.22;
+  const metrics = getBubbleMetrics(node, state, ctx, scale);
+  const x = node.x - metrics.width / 2;
+  const y = node.y - metrics.height / 2;
+  const fillAlpha = state === "selected" ? 0.98 : state === "related" ? 0.82 : 0.18;
+  const strokeAlpha = state === "selected" ? 0.95 : state === "related" ? 0.7 : 0.32;
+  const textColor = state === "idle" ? hexToRgba(baseColor, 0.92) : colors.ink;
+  const lineWidth = (state === "selected" ? 2.4 : state === "related" ? 1.7 : 1) / scale;
+
+  node.__pointerBox = {
+    height: metrics.height + 10 / scale,
+    width: metrics.width + 10 / scale,
+  };
 
   ctx.save();
-  ctx.beginPath();
-  ctx.arc(node.x, node.y, radius, 0, Math.PI * 2, false);
-  ctx.fillStyle = hexToRgba(baseColor, alpha);
+  drawRoundedRect(ctx, x, y, metrics.width, metrics.height, metrics.radius);
+  ctx.fillStyle = hexToRgba(baseColor, fillAlpha);
   ctx.fill();
-  ctx.lineWidth = (isSelected ? 2.2 : 1.2) / scale;
-  ctx.strokeStyle = isSelected ? colors.accent : hexToRgba(baseColor, strokeAlpha);
+  ctx.lineWidth = lineWidth;
+  ctx.strokeStyle = state === "selected" ? colors.accent : hexToRgba(baseColor, strokeAlpha);
   ctx.stroke();
 
-  if (isSelected || isHovered) {
-    ctx.beginPath();
-    ctx.arc(node.x, node.y, radius + 4 / scale, 0, Math.PI * 2, false);
+  if (state === "selected") {
+    drawRoundedRect(
+      ctx,
+      x - 4 / scale,
+      y - 4 / scale,
+      metrics.width + 8 / scale,
+      metrics.height + 8 / scale,
+      metrics.radius + 4 / scale,
+    );
     ctx.lineWidth = 1 / scale;
-    ctx.strokeStyle = hexToRgba(baseColor, 0.35);
+    ctx.strokeStyle = hexToRgba(baseColor, 0.4);
     ctx.stroke();
   }
 
-  if (shouldShowNodeLabel(node, selectedTagId, activeNeighborIds, hoveredTagId, scale)) {
-    const fontSize = Math.max(3.2, Math.min(7.4, 10 / scale));
-    const labelOffset = radius + fontSize * 0.82;
+  ctx.font = `${metrics.weight} ${metrics.fontSize}px Arial, sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = textColor;
 
-    ctx.font = `${isSelected ? 600 : 500} ${fontSize}px Arial, sans-serif`;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-
-    const textWidth = ctx.measureText(node.label).width;
-    const paddingX = fontSize * 0.45;
-    const paddingY = fontSize * 0.28;
-
-    ctx.fillStyle = colors.labelBackground;
-    ctx.fillRect(
-      node.x - textWidth / 2 - paddingX,
-      node.y + labelOffset - fontSize / 2 - paddingY,
-      textWidth + paddingX * 2,
-      fontSize + paddingY * 2,
-    );
-
-    ctx.fillStyle = isSelected ? colors.accent : colors.text;
-    ctx.fillText(node.label, node.x, node.y + labelOffset);
-  }
+  const firstLineY =
+    node.y - ((metrics.labelLines.length - 1) * metrics.lineHeight) / 2;
+  metrics.labelLines.forEach((line, index) => {
+    ctx.fillText(line, node.x, firstLineY + index * metrics.lineHeight);
+  });
 
   ctx.restore();
 }
 
 function paintPointerArea(node, color, ctx) {
-  const radius = Math.max(11, node.__pointerRadius ?? 12);
+  const width = node.__pointerBox?.width ?? Math.max(52, node.label.length * 8);
+  const height = node.__pointerBox?.height ?? 34;
 
   ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.arc(node.x, node.y, radius, 0, Math.PI * 2, false);
+  drawRoundedRect(ctx, node.x - width / 2, node.y - height / 2, width, height, height / 2);
   ctx.fill();
 }
 
 export function TagForceMap({ selectedTagId, works }) {
   const graphRef = useRef();
   const [containerRef, size] = useElementSize();
-  const [hoveredTagId, setHoveredTagId] = useState(null);
   const didInitialFocusRef = useRef(false);
   const network = useMemo(() => getTagNetwork(works), [works]);
   const focus = useMemo(
     () => getTagFocus(network, selectedTagId),
     [network, selectedTagId],
   );
-  const hoveredFocus = useMemo(
-    () => (hoveredTagId ? getTagFocus(network, hoveredTagId) : null),
-    [hoveredTagId, network],
-  );
-  const activeNeighborIds = hoveredFocus?.neighborIds ?? focus.neighborIds;
-  const activeTagId = hoveredTagId ?? selectedTagId;
+  const activeNeighborIds = focus.neighborIds;
   const isCompact = size.width > 0 && size.width < 700;
   const colors = {
     accent: cssVar("--accent", "#b7ff85"),
-    labelBackground: cssVar("--bg", "#121512"),
+    ink: "#101610",
     line: cssVar("--line", "rgba(147, 245, 166, 0.16)"),
-    text: cssVar("--text", "#93f5a6"),
   };
 
   const focusNode = useCallback(
@@ -221,6 +266,19 @@ export function TagForceMap({ selectedTagId, works }) {
     },
     [isCompact],
   );
+
+  useEffect(() => {
+    if (!graphRef.current || size.width === 0) {
+      return;
+    }
+
+    const chargeForce = graphRef.current.d3Force("charge");
+    const linkForce = graphRef.current.d3Force("link");
+
+    chargeForce?.strength(isCompact ? -110 : -150);
+    linkForce?.distance((link) => Math.max(54, 84 - link.strength * 7));
+    graphRef.current.d3ReheatSimulation();
+  }, [isCompact, network, size.width]);
 
   useEffect(() => {
     if (!focus.selectedNode) {
@@ -265,24 +323,16 @@ export function TagForceMap({ selectedTagId, works }) {
 
   const nodeCanvasObject = useCallback(
     (node, ctx, scale) => {
-      node.__pointerRadius = nodeRadius(
-        node,
-        selectedTagId,
-        activeNeighborIds,
-        hoveredTagId,
-      ) + 7 / scale;
-
       paintNode({
         activeNeighborIds,
         colors,
-        hoveredTagId,
         node,
         selectedTagId,
         ctx,
         scale,
       });
     },
-    [activeNeighborIds, colors, hoveredTagId, selectedTagId],
+    [activeNeighborIds, colors, selectedTagId],
   );
 
   const selectedLabel = focus.selectedNode?.label ?? selectedTagId;
@@ -334,26 +384,18 @@ export function TagForceMap({ selectedTagId, works }) {
             backgroundColor="rgba(0,0,0,0)"
             nodeId="id"
             nodeVal={(node) => node.val}
-            nodeLabel={(node) =>
-              `${node.label}<br>${node.typeLabel} / ${formatWorkCount(node.workCount)}`
-            }
+            nodeLabel={() => ""}
             nodeCanvasObject={nodeCanvasObject}
             nodeCanvasObjectMode={() => "replace"}
             nodePointerAreaPaint={paintPointerArea}
-            linkLabel={(link) => {
-              const { source, target } = getLinkNodeIds(link);
-              const sourceLabel = network.nodeById.get(source)?.label ?? source;
-              const targetLabel = network.nodeById.get(target)?.label ?? target;
-
-              return `${sourceLabel} / ${targetLabel}<br>${formatWorkCount(link.strength)}`;
-            }}
+            linkLabel={() => ""}
             linkColor={(link) =>
-              isLinkConnectedTo(link, activeTagId)
-                ? hexToRgba(getNodeColor(network.nodeById.get(activeTagId) ?? {}), 0.72)
+              isLinkConnectedTo(link, selectedTagId)
+                ? hexToRgba(getNodeColor(network.nodeById.get(selectedTagId) ?? {}), 0.72)
                 : colors.line
             }
             linkWidth={(link) =>
-              isLinkConnectedTo(link, activeTagId)
+              isLinkConnectedTo(link, selectedTagId)
                 ? 0.95 + Math.min(2.4, link.strength * 0.55)
                 : 0.35 + Math.min(1.2, link.strength * 0.18)
             }
@@ -366,7 +408,6 @@ export function TagForceMap({ selectedTagId, works }) {
             d3VelocityDecay={0.34}
             onEngineStop={handleEngineStop}
             onNodeClick={handleNodeClick}
-            onNodeHover={(node) => setHoveredTagId(node?.id ?? null)}
             onNodeDragEnd={handleNodeDragEnd}
             showPointerCursor
           />

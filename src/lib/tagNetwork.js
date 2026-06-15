@@ -83,7 +83,7 @@ export function getTagNetwork(works) {
         typeLabel: type?.label ?? primaryType,
         types: tag.types ?? [],
         workCount,
-        val: 2 + Math.sqrt(workCount + 1),
+        val: Math.max(18, tag.label.length * 2.8 + workCount * 3),
       };
     })
     .sort(compareTags);
