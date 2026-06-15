@@ -335,6 +335,29 @@ export function TagForceMap({ selectedTagId, works }) {
     [activeNeighborIds, colors, selectedTagId],
   );
 
+  const renderSelectedNodeOnTop = useCallback(
+    (ctx, scale) => {
+      const selectedNode = focus.selectedNode;
+      if (
+        !selectedNode ||
+        typeof selectedNode.x !== "number" ||
+        typeof selectedNode.y !== "number"
+      ) {
+        return;
+      }
+
+      paintNode({
+        activeNeighborIds,
+        colors,
+        node: selectedNode,
+        selectedTagId,
+        ctx,
+        scale,
+      });
+    },
+    [activeNeighborIds, colors, focus.selectedNode, selectedTagId],
+  );
+
   const selectedLabel = focus.selectedNode?.label ?? selectedTagId;
   const visibleWorks = focus.selectedWorks.slice(0, 5);
   const typeEntries = Object.values(tagTypes).filter(
@@ -388,6 +411,7 @@ export function TagForceMap({ selectedTagId, works }) {
             nodeCanvasObject={nodeCanvasObject}
             nodeCanvasObjectMode={() => "replace"}
             nodePointerAreaPaint={paintPointerArea}
+            onRenderFramePost={renderSelectedNodeOnTop}
             linkLabel={() => ""}
             linkColor={(link) =>
               isLinkConnectedTo(link, selectedTagId)
