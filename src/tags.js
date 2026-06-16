@@ -32,7 +32,6 @@ export const tags = {
   sculpture: { id: "sculpture", label: "sculpture", types: ["form"] },
   shell: { id: "shell", label: "shell", types: ["material", "form"] },
   figure: { id: "figure", label: "figure", types: ["form"] },
-  object: { id: "object", label: "object", types: ["form"] },
   translucent: {
     id: "translucent",
     label: "translucent",
@@ -46,7 +45,6 @@ export const tags = {
   glow: { id: "glow", label: "glow", types: ["phenomenon", "quality"] },
   stacked: { id: "stacked", label: "stacked", types: ["process"] },
   surface: { id: "surface", label: "surface", types: ["context", "form"] },
-  planes: { id: "planes", label: "planes", types: ["form", "context"] },
   vibration: {
     id: "vibration",
     label: "vibration",
@@ -58,8 +56,6 @@ export const tags = {
     types: ["context", "motif"],
   },
   carved: { id: "carved", label: "carved", types: ["process"] },
-  vertical: { id: "vertical", label: "vertical", types: ["quality"] },
-  base: { id: "base", label: "base", types: ["context", "form"] },
   "found-material": {
     id: "found-material",
     label: "found material",
@@ -83,13 +79,10 @@ export const tags = {
   orbital: { id: "orbital", label: "orbital", types: ["motif", "quality"] },
   planetary: { id: "planetary", label: "planetary", types: ["motif"] },
   swirl: { id: "swirl", label: "swirl", types: ["motif", "quality"] },
-  mercuric: { id: "mercuric", label: "mercuric", types: ["motif", "quality"] },
-  process: { id: "process", label: "process", types: ["process", "context"] },
   suspended: { id: "suspended", label: "suspended", types: ["process"] },
   watchful: { id: "watchful", label: "watchful", types: ["quality"] },
   animate: { id: "animate", label: "animate", types: ["quality", "motif"] },
   tropical: { id: "tropical", label: "tropical", types: ["motif", "location"] },
-  color: { id: "color", label: "color", types: ["quality", "phenomenon"] },
 };
 
 export function getTag(tagId) {
