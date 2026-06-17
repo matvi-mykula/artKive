@@ -3,9 +3,12 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import {
   ensureTagsSource,
+  linkTextWithTags,
   parseArgs,
+  readTagRegistry,
   readTagsFile,
   requireArgs,
+  shouldAutoLinkText,
   splitList,
   writeJsonFile,
   writeTagsFile,
@@ -20,6 +23,18 @@ async function findWorkManifest(root, slug) {
 function applyStringUpdate(target, fieldName, value) {
   if (value !== undefined) {
     target[fieldName] = value;
+  }
+}
+
+async function readExistingText(filePath) {
+  try {
+    return await fs.readFile(filePath, "utf8");
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      return undefined;
+    }
+
+    throw error;
   }
 }
 
@@ -73,23 +88,46 @@ export async function updateWork(root, options) {
     await writeTagsFile(tagsFile);
   }
 
+  const autoLinkText = shouldAutoLinkText(options);
+  const tagRegistry = autoLinkText ? await readTagRegistry(root) : null;
+  const effectiveTags = Array.isArray(nextManifest.tags) ? nextManifest.tags : [];
+
   await writeJsonFile(manifestEntry.manifestPath, nextManifest);
 
-  if (options.blurb !== undefined) {
-    await fs.writeFile(
-      path.join(manifestEntry.directory, nextManifest.blurb ?? "blurb.txt"),
-      options.blurb,
-    );
+  const blurbPath =
+    nextManifest.blurb === null
+      ? null
+      : path.join(manifestEntry.directory, nextManifest.blurb ?? "blurb.txt");
+  const descriptionPath =
+    nextManifest.description === null
+      ? null
+      : path.join(
+          manifestEntry.directory,
+          nextManifest.description ?? "description.txt",
+        );
+
+  if (blurbPath && (options.blurb !== undefined || autoLinkText)) {
+    const rawBlurb =
+      options.blurb ?? (await readExistingText(blurbPath));
+
+    if (rawBlurb !== undefined) {
+      const blurb = autoLinkText
+        ? linkTextWithTags(rawBlurb, effectiveTags, tagRegistry.tags)
+        : rawBlurb;
+      await fs.writeFile(blurbPath, blurb);
+    }
   }
 
-  if (options.description !== undefined) {
-    await fs.writeFile(
-      path.join(
-        manifestEntry.directory,
-        nextManifest.description ?? "description.txt",
-      ),
-      options.description,
-    );
+  if (descriptionPath && (options.description !== undefined || autoLinkText)) {
+    const rawDescription =
+      options.description ?? (await readExistingText(descriptionPath));
+
+    if (rawDescription !== undefined) {
+      const description = autoLinkText
+        ? linkTextWithTags(rawDescription, effectiveTags, tagRegistry.tags)
+        : rawDescription;
+      await fs.writeFile(descriptionPath, description);
+    }
   }
 
   const findings = await validateArchive(root);

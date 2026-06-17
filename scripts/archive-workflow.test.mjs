@@ -113,7 +113,7 @@ test("linkTextWithTags links the first visible term for each tag", () => {
   );
 });
 
-test("linkTextWithTags leaves already linked text alone", () => {
+test("linkTextWithTags links untagged terms around explicit inline tags", () => {
   const tags = {
     lamp: { id: "lamp", label: "lamp", types: ["form"] },
     wood: { id: "wood", label: "wood", types: ["material"] },
@@ -121,7 +121,23 @@ test("linkTextWithTags leaves already linked text alone", () => {
 
   assert.equal(
     linkTextWithTags("A [[lamp]] with wood.", ["lamp", "wood"], tags),
-    "A [[lamp]] with wood.",
+    "A [[lamp]] with [[wood|wood]].",
+  );
+});
+
+test("linkTextWithTags can link earlier plain terms before later inline tags", () => {
+  const tags = {
+    lamp: { id: "lamp", label: "lamp", types: ["form"] },
+    shell: { id: "shell", label: "shell", types: ["material", "form"] },
+  };
+
+  assert.equal(
+    linkTextWithTags(
+      "Shell lamp round two. Crowd-pleaser [[shell]] [[lamp]].",
+      ["shell", "lamp"],
+      tags,
+    ),
+    "[[shell|Shell]] [[lamp|lamp]] round two. Crowd-pleaser shell lamp.",
   );
 });
 

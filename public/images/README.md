@@ -13,6 +13,10 @@ with explicit tags, and `--auto-link-text` to wrap matching plain-text terms as
 inline tag links. Image-derived tags still need to be chosen by the person or
 agent reviewing the photos.
 
+For existing works, `update:work` can also use `--auto-link-text` to link
+matching tag words in the current blurb and description, even when the files
+already contain other inline tags.
+
 Manual workflow:
 
 1. Create one folder per work inside `public/images/`.

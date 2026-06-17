@@ -115,6 +115,8 @@ Useful options:
 - `--cover-position`: update archive cover framing
 - `--blurb`: replace `blurb.txt`
 - `--description`: replace `description.txt`
+- `--auto-link-text`: wrap matching plain-text terms in the updated or existing
+  `blurb.txt` and `description.txt`
 
 The work folder path is the asset path. To change it, move the folder and then
 validate the archive.
@@ -197,6 +199,8 @@ metadata or text must exist in `tags`.
   - `[[tag-id]]`
   - `[[tag-id|visible phrase]]`
 - Every tag id used in text must exist in `src/tags.js`
+- The ingest and update scripts can auto-link known tag words with
+  `--auto-link-text`, including copy that already contains other inline tags.
 
 ## Image optimization workflow
 

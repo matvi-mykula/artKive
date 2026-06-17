@@ -3,7 +3,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 export const DEFAULT_NEW_TAG_TYPES = ["uncategorized"];
-const INLINE_TAG_PATTERN = /\[\[([^|\]]+)(?:\|[^\]]+)?\]\]/g;
+const INLINE_TAG_PATTERN = /\[\[([^|\]]+)(?:\|([^\]]+))?\]\]/g;
 
 export function parseArgs(argv) {
   const args = {};
@@ -114,6 +114,56 @@ function findInlineTagIds(source) {
   }));
 }
 
+function findInlineTagRanges(source) {
+  return [...String(source ?? "").matchAll(INLINE_TAG_PATTERN)].map((match) => ({
+    tagId: match[1].trim(),
+    start: match.index,
+    end: match.index + match[0].length,
+  }));
+}
+
+function overlapsRange(start, end, ranges) {
+  return ranges.some((range) => start < range.end && end > range.start);
+}
+
+function findFirstInlineTagIndex(source, tagId) {
+  const match = findInlineTagRanges(source).find((range) => range.tagId === tagId);
+
+  return match ? match.start : -1;
+}
+
+function findTagTermMatch(source, term) {
+  const ranges = findInlineTagRanges(source);
+  const termPattern = escapeRegExp(term).replace(/\s+/g, "\\s+");
+  const pattern = new RegExp(
+    `(^|[^A-Za-z0-9])(${termPattern})(?=$|[^A-Za-z0-9])`,
+    "gi",
+  );
+  let match;
+
+  while ((match = pattern.exec(source)) !== null) {
+    const phraseStart = match.index + match[1].length;
+    const phrase = match[2];
+    const phraseEnd = phraseStart + phrase.length;
+
+    if (!overlapsRange(phraseStart, phraseEnd, ranges)) {
+      return { phrase, phraseStart, phraseEnd };
+    }
+  }
+
+  return null;
+}
+
+function unwrapInlineTagsAfter(source, tagId, afterIndex) {
+  return source.replace(INLINE_TAG_PATTERN, (match, inlineTagId, text, offset) => {
+    if (inlineTagId.trim() !== tagId || offset <= afterIndex) {
+      return match;
+    }
+
+    return (text ?? inlineTagId).trim();
+  });
+}
+
 function formatTagEntry(tagId) {
   return `  ${quoteObjectKey(tagId)}: { id: "${escapeJsString(
     tagId,
@@ -176,7 +226,7 @@ export function inferTagIdsFromText(source, tags) {
 }
 
 export function linkTextWithTags(source, tagIds, tags) {
-  if (!source || source.includes("[[")) {
+  if (!source) {
     return source ?? "";
   }
 
@@ -203,21 +253,23 @@ export function linkTextWithTags(source, tagIds, tags) {
       continue;
     }
 
-    const termPattern = escapeRegExp(candidate.term).replace(/\s+/g, "\\s+");
-    const pattern = new RegExp(
-      `(^|[^A-Za-z0-9])(${termPattern})(?=$|[^A-Za-z0-9])`,
-      "i",
-    );
-    let linked = false;
+    const inlineIndex = findFirstInlineTagIndex(nextSource, candidate.tagId);
+    const match = findTagTermMatch(nextSource, candidate.term);
 
-    nextSource = nextSource.replace(pattern, (match, prefix, phrase) => {
-      linked = true;
-      return `${prefix}[[${candidate.tagId}|${phrase}]]`;
-    });
-
-    if (linked) {
-      linkedTags.add(candidate.tagId);
+    if (!match) {
+      continue;
     }
+
+    if (inlineIndex !== -1 && inlineIndex <= match.phraseStart) {
+      continue;
+    }
+
+    nextSource =
+      nextSource.slice(0, match.phraseStart) +
+      `[[${candidate.tagId}|${match.phrase}]]` +
+      nextSource.slice(match.phraseEnd);
+    nextSource = unwrapInlineTagsAfter(nextSource, candidate.tagId, match.phraseStart);
+    linkedTags.add(candidate.tagId);
   }
 
   return nextSource;
