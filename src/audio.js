@@ -14,6 +14,11 @@ const trackDefinitions = [
     title: "CCCallandresponse",
     fileName: "CCCallandresponse.mp3",
   },
+  {
+    id: "let-the-sparkling-do-the-talking",
+    title: "Let The Sparkling Do The Talking",
+    fileName: "LetTheSparklingDoTheTalking.mp3",
+  },
 ];
 
 export const siteAudioTracks = trackDefinitions
