@@ -115,30 +115,6 @@ export function AudioPlayer({ tracks }) {
   return (
     <div className={`audio-player${isPlaying ? " is-playing" : ""}${isError ? " is-error" : ""}`}>
       <button
-        className="audio-skip"
-        type="button"
-        onClick={() => skipTrack(-1)}
-        aria-label="Previous song"
-        disabled={!currentTrack}
-      >
-        <TransportIcon type="previous" />
-      </button>
-      <button
-        className="audio-toggle"
-        type="button"
-        onClick={togglePlayback}
-        aria-label={
-          currentTrack
-            ? isPlaying
-              ? `Pause ${currentTrack.title}`
-              : `Play ${currentTrack.title}`
-            : "Audio unavailable"
-        }
-        disabled={!currentTrack}
-      >
-        <TransportIcon type={isPlaying ? "pause" : "play"} />
-      </button>
-      <button
         className="audio-title"
         type="button"
         ref={openerRef}
@@ -149,15 +125,41 @@ export function AudioPlayer({ tracks }) {
       >
         {currentTrack ? currentTrack.title : "Audio unavailable"}
       </button>
-      <button
-        className="audio-skip"
-        type="button"
-        onClick={() => skipTrack(1)}
-        aria-label="Next song"
-        disabled={!currentTrack}
-      >
-        <TransportIcon type="next" />
-      </button>
+      <div className="audio-controls" role="group" aria-label="Audio controls">
+        <button
+          className="audio-skip"
+          type="button"
+          onClick={() => skipTrack(-1)}
+          aria-label="Previous song"
+          disabled={!currentTrack}
+        >
+          <TransportIcon type="previous" />
+        </button>
+        <button
+          className="audio-toggle"
+          type="button"
+          onClick={togglePlayback}
+          aria-label={
+            currentTrack
+              ? isPlaying
+                ? `Pause ${currentTrack.title}`
+                : `Play ${currentTrack.title}`
+              : "Audio unavailable"
+          }
+          disabled={!currentTrack}
+        >
+          <TransportIcon type={isPlaying ? "pause" : "play"} />
+        </button>
+        <button
+          className="audio-skip"
+          type="button"
+          onClick={() => skipTrack(1)}
+          aria-label="Next song"
+          disabled={!currentTrack}
+        >
+          <TransportIcon type="next" />
+        </button>
+      </div>
 
       {isChooserOpen ? (
         <div

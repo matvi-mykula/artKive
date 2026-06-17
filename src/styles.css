@@ -126,11 +126,10 @@ a {
 }
 
 .audio-player {
-  display: inline-flex;
-  align-items: center;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 0.45rem;
+  max-width: min(56vw, 18rem);
+  display: inline-grid;
+  justify-items: end;
+  gap: 0.28rem;
   color: var(--muted);
 }
 
@@ -149,6 +148,14 @@ a {
   font-size: 0.68rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
+}
+
+.audio-controls {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  white-space: nowrap;
 }
 
 .audio-skip,
@@ -170,7 +177,9 @@ a {
 .audio-title {
   padding: 0;
   color: inherit;
-  white-space: nowrap;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+  text-align: right;
 }
 
 .audio-title:disabled {
