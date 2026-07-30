@@ -324,9 +324,19 @@ a {
 .song-vignette-stage {
   position: relative;
   display: grid;
-  place-items: center;
+  grid-template-rows: minmax(0, 1fr) auto;
   min-height: 70vh;
   min-height: 70dvh;
+  overflow: hidden;
+  background: #000;
+}
+
+.song-vignette-media {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  place-items: center;
   overflow: hidden;
   background: #000;
 }
@@ -382,20 +392,16 @@ a {
 }
 
 .song-vignette-controls {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 2;
   display: grid;
   grid-template-columns: auto auto minmax(4rem, 1fr) auto auto;
   align-items: center;
   gap: 0.65rem;
   padding:
-    2.5rem max(1rem, env(safe-area-inset-right))
-    max(1rem, env(safe-area-inset-bottom))
+    0.75rem max(1rem, env(safe-area-inset-right))
+    max(0.75rem, env(safe-area-inset-bottom))
     max(1rem, env(safe-area-inset-left));
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.82));
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  background: #090909;
   color: #fff;
 }
 
@@ -566,6 +572,13 @@ a {
   height: 100%;
   min-height: 100%;
   background: #000;
+}
+
+.song-vignette-stage:fullscreen .song-vignette-video,
+.song-vignette-stage:-webkit-full-screen .song-vignette-video,
+.song-vignette-stage.is-immersive .song-vignette-video {
+  max-width: 100%;
+  max-height: 100%;
 }
 
 .song-vignette-stage.is-immersive {

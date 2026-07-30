@@ -218,32 +218,34 @@ export function SongPage({ player, track }) {
         ref={stageRef}
         aria-label={`${track.title} video`}
       >
-        <video
-          className="song-vignette-video"
-          ref={videoRef}
-          src={track.vignette.src}
-          style={{ objectFit: track.vignette.fit }}
-          muted
-          loop
-          playsInline
-          preload="auto"
-          onClick={() => void player.togglePlayback()}
-          onError={() => setHasVideoError(true)}
-        />
-        {hasVideoError ? (
-          <p className="song-vignette-status">Video unavailable</p>
-        ) : null}
-        {showPlayButton ? (
-          <button
-            className="song-vignette-play"
-            type="button"
+        <div className="song-vignette-media">
+          <video
+            className="song-vignette-video"
+            ref={videoRef}
+            src={track.vignette.src}
+            style={{ objectFit: track.vignette.fit }}
+            muted
+            loop
+            playsInline
+            preload="auto"
             onClick={() => void player.togglePlayback()}
-            aria-label={`Play ${track.title}`}
-            title={`Play ${track.title}`}
-          >
-            <span aria-hidden="true">▶</span>
-          </button>
-        ) : null}
+            onError={() => setHasVideoError(true)}
+          />
+          {hasVideoError ? (
+            <p className="song-vignette-status">Video unavailable</p>
+          ) : null}
+          {showPlayButton ? (
+            <button
+              className="song-vignette-play"
+              type="button"
+              onClick={() => void player.togglePlayback()}
+              aria-label={`Play ${track.title}`}
+              title={`Play ${track.title}`}
+            >
+              <span aria-hidden="true">▶</span>
+            </button>
+          ) : null}
+        </div>
         <div
           className="song-vignette-controls"
           role="group"
