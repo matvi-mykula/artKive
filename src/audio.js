@@ -4,8 +4,35 @@ const audioModules = import.meta.glob("../public/audio/*.{mp3,MP3,m4a,M4A,wav,WA
   import: "default",
 });
 
+const vignetteModules = import.meta.glob(
+  "../public/vignettes/*.{mp4,MP4,webm,WEBM}",
+  {
+    eager: true,
+    query: "?url",
+    import: "default",
+  },
+);
+
 function publicAssetPath(modulePath) {
   return modulePath.replace("../public", "");
+}
+
+function resolveVignette(vignette) {
+  if (!vignette) {
+    return null;
+  }
+
+  const modulePath = `../public/vignettes/${vignette.fileName}`;
+  const src = vignetteModules[modulePath];
+
+  if (!src) {
+    return null;
+  }
+
+  return {
+    src: publicAssetPath(String(src)),
+    fit: vignette.fit ?? "contain",
+  };
 }
 
 const trackDefinitions = [
@@ -13,6 +40,10 @@ const trackDefinitions = [
     id: "cc-call-and-response",
     title: "CCCallandresponse",
     fileName: "CCCallandresponse.mp3",
+    vignette: {
+      fileName: "cc-call-and-response-vignette.mp4",
+      fit: "contain",
+    },
   },
   {
     id: "let-the-sparkling-do-the-talking",
@@ -34,6 +65,7 @@ export const siteAudioTracks = trackDefinitions
       id: track.id,
       title: track.title,
       src: publicAssetPath(String(src)),
+      vignette: resolveVignette(track.vignette),
     };
   })
   .filter(Boolean);

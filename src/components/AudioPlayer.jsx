@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAudioPlayer } from "../hooks/useAudioPlayer";
+import { VignetteViewer } from "./VignetteViewer";
 
 const FOCUSABLE_SELECTOR = [
   "button:not([disabled])",
@@ -45,20 +46,32 @@ function TransportIcon({ type }) {
   );
 }
 
+function VignetteIcon() {
+  return (
+    <span className="audio-vignette-icon" aria-hidden="true">
+      <span>▶</span>
+    </span>
+  );
+}
+
 export function AudioPlayer({ tracks }) {
   const modalRef = useRef(null);
   const closeButtonRef = useRef(null);
   const openerRef = useRef(null);
   const [isChooserOpen, setIsChooserOpen] = useState(false);
+  const [activeVignetteTrackId, setActiveVignetteTrackId] = useState(null);
   const {
     currentIndex,
     currentTrack,
+    getPlaybackPosition,
     isError,
     isPlaying,
     selectTrack,
     skipTrack,
     togglePlayback,
   } = useAudioPlayer(tracks);
+  const activeVignetteTrack =
+    tracks.find((track) => track.id === activeVignetteTrackId) ?? null;
 
   useEffect(() => {
     if (!isChooserOpen) {
@@ -107,9 +120,33 @@ export function AudioPlayer({ tracks }) {
     };
   }, [isChooserOpen]);
 
+  useEffect(() => {
+    if (
+      activeVignetteTrackId &&
+      currentTrack?.id !== activeVignetteTrackId
+    ) {
+      setActiveVignetteTrackId(null);
+    }
+  }, [activeVignetteTrackId, currentTrack?.id]);
+
   async function handleTrackSelect(index) {
     setIsChooserOpen(false);
     await selectTrack(index);
+  }
+
+  const closeVignette = useCallback(() => {
+    setActiveVignetteTrackId(null);
+  }, []);
+
+  function handleVignetteSelect(index) {
+    const track = tracks[index];
+    if (!track?.vignette) {
+      return;
+    }
+
+    setIsChooserOpen(false);
+    setActiveVignetteTrackId(track.id);
+    void selectTrack(index);
   }
 
   return (
@@ -193,20 +230,44 @@ export function AudioPlayer({ tracks }) {
                 const isCurrentPlaying = isCurrent && isPlaying;
 
                 return (
-                  <button
-                    className={`audio-track-option${isCurrent ? " is-current" : ""}${isCurrentPlaying ? " is-playing" : ""}`}
-                    type="button"
+                  <div
+                    className="audio-track-row"
                     key={track.id}
-                    onClick={() => handleTrackSelect(index)}
                   >
-                    <span>{track.title}</span>
-                    {isCurrentPlaying ? <span>Playing</span> : null}
-                  </button>
+                    <button
+                      className={`audio-track-option${isCurrent ? " is-current" : ""}${isCurrentPlaying ? " is-playing" : ""}`}
+                      type="button"
+                      onClick={() => handleTrackSelect(index)}
+                    >
+                      <span>{track.title}</span>
+                      {isCurrentPlaying ? <span>Playing</span> : null}
+                    </button>
+                    {track.vignette ? (
+                      <button
+                        className="audio-track-vignette"
+                        type="button"
+                        onClick={() => handleVignetteSelect(index)}
+                        aria-label={`Play ${track.title} with video`}
+                        title={`Play ${track.title} with video`}
+                      >
+                        <VignetteIcon />
+                      </button>
+                    ) : null}
+                  </div>
                 );
               })}
             </div>
           </section>
         </div>
+      ) : null}
+      {activeVignetteTrack &&
+      currentTrack?.id === activeVignetteTrack.id ? (
+        <VignetteViewer
+          getPlaybackPosition={getPlaybackPosition}
+          isPlaying={isPlaying}
+          onClose={closeVignette}
+          track={activeVignetteTrack}
+        />
       ) : null}
     </div>
   );
