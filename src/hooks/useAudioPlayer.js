@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 function getWrappedIndex(index, offset, length) {
   if (!length) {
@@ -153,6 +153,11 @@ export function useAudioPlayer(tracks) {
     setCurrentIndex((index) => getWrappedIndex(index, offset, tracks.length));
   }
 
+  const getPlaybackPosition = useCallback(
+    () => audioRef.current?.currentTime ?? 0,
+    [],
+  );
+
   async function selectTrack(index) {
     shouldKeepPlayingRef.current = true;
 
@@ -168,6 +173,7 @@ export function useAudioPlayer(tracks) {
   return {
     currentIndex,
     currentTrack,
+    getPlaybackPosition,
     isError: status === "error",
     isPlaying: status === "playing",
     selectTrack,
