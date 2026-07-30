@@ -1,10 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { works } from "./data";
 import { ArchiveCard } from "./components/ArchiveCard";
 import { Header } from "./components/Header";
+import { SongPage } from "./components/SongPage";
 import { TagPage } from "./components/TagPage";
 import { WorkPage } from "./components/WorkPage";
-import { navigate } from "./lib/router";
+import { useAudioPlayer } from "./hooks/useAudioPlayer";
+import { navigate, parseRoute } from "./lib/router";
 import { getTag, getTagLabel } from "./tags";
 import { siteAudioTracks } from "./audio";
 
@@ -29,28 +31,6 @@ function getInitialThemePreference() {
 
 function getRoute() {
   return window.location.pathname;
-}
-
-function parseRoute(route) {
-  if (route === "/") {
-    return { type: "home" };
-  }
-
-  if (route === "/contact") {
-    return { type: "contact" };
-  }
-
-  const workMatch = route.match(/^\/works\/([^/]+)$/);
-  if (workMatch) {
-    return { type: "work", slug: workMatch[1] };
-  }
-
-  const tagMatch = route.match(/^\/tags\/([^/]+)$/);
-  if (tagMatch) {
-    return { type: "tag", slug: tagMatch[1] };
-  }
-
-  return { type: "not-found" };
 }
 
 function HomePage({ items }) {
@@ -117,6 +97,9 @@ function Footer() {
 }
 
 export default function App() {
+  const audioPlayer = useAudioPlayer(siteAudioTracks);
+  const activeSongRouteRef = useRef(null);
+  const pendingSongTrackRef = useRef(null);
   const [themePreference, setThemePreference] = useState(
     getInitialThemePreference,
   );
@@ -170,6 +153,68 @@ export default function App() {
     };
   }, [routeState]);
 
+  const selectedSong = useMemo(() => {
+    if (routeState.type !== "song") {
+      return null;
+    }
+
+    const index = siteAudioTracks.findIndex(
+      (track) => track.id === routeState.slug,
+    );
+    if (index < 0) {
+      return null;
+    }
+
+    return {
+      index,
+      track: siteAudioTracks[index],
+    };
+  }, [routeState]);
+
+  useEffect(() => {
+    const routedTrackId = selectedSong?.track.id ?? null;
+
+    if (!routedTrackId) {
+      activeSongRouteRef.current = null;
+      pendingSongTrackRef.current = null;
+      return;
+    }
+
+    if (activeSongRouteRef.current !== routedTrackId) {
+      activeSongRouteRef.current = routedTrackId;
+      if (audioPlayer.currentTrack?.id !== routedTrackId) {
+        pendingSongTrackRef.current = routedTrackId;
+        audioPlayer.loadTrack(selectedSong.index);
+      } else {
+        pendingSongTrackRef.current = null;
+      }
+      return;
+    }
+
+    if (audioPlayer.currentTrack?.id === routedTrackId) {
+      pendingSongTrackRef.current = null;
+      return;
+    }
+
+    if (pendingSongTrackRef.current === routedTrackId) {
+      return;
+    }
+
+    if (audioPlayer.currentTrack?.id !== routedTrackId) {
+      navigate("/");
+    }
+  }, [
+    audioPlayer.currentTrack?.id,
+    audioPlayer.loadTrack,
+    selectedSong,
+  ]);
+
+  useEffect(() => {
+    document.title = selectedSong
+      ? `${selectedSong.track.title} — Matvi ArtKive`
+      : "Matvi ArtKive";
+  }, [selectedSong]);
+
   let content = (
     <NotFoundPage label="Missing page" title="This page does not exist." />
   );
@@ -190,6 +235,20 @@ export default function App() {
     ) : (
       <NotFoundPage label="Missing tag" title="This tag does not exist." />
     );
+  } else if (routeState.type === "song") {
+    content =
+      selectedSong?.track.vignette ? (
+        <SongPage
+          key={selectedSong.track.id}
+          player={audioPlayer}
+          track={selectedSong.track}
+        />
+      ) : (
+        <NotFoundPage
+          label="Missing vignette"
+          title="This song does not have a video page."
+        />
+      );
   }
 
   return (
@@ -198,6 +257,7 @@ export default function App() {
         theme={theme}
         themePreference={themePreference}
         currentPath={route}
+        player={audioPlayer}
         tracks={siteAudioTracks}
         onThemeToggle={() =>
           setThemePreference(() =>

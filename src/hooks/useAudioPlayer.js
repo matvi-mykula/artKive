@@ -168,6 +168,21 @@ export function useAudioPlayer(tracks) {
     [],
   );
 
+  const loadTrack = useCallback(
+    (index) => {
+      if (index < 0 || index >= tracks.length) {
+        return;
+      }
+
+      shouldKeepPlayingRef.current = false;
+      errorSkipCountRef.current = 0;
+      audioRef.current?.pause();
+      setCurrentIndex(index);
+      setStatus("idle");
+    },
+    [tracks.length],
+  );
+
   async function selectTrack(index) {
     shouldKeepPlayingRef.current = true;
 
@@ -186,6 +201,7 @@ export function useAudioPlayer(tracks) {
     getPlaybackPosition,
     isError: status === "error",
     isPlaying: status === "playing",
+    loadTrack,
     selectTrack,
     skipTrack,
     status,

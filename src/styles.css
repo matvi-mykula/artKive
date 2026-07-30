@@ -317,54 +317,30 @@ a {
   color: var(--accent);
 }
 
-.vignette-viewer {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
+.song-page {
+  gap: 1.5rem;
+}
+
+.song-vignette-stage {
+  position: relative;
   display: grid;
   place-items: center;
+  min-height: 70vh;
+  min-height: 70dvh;
   overflow: hidden;
   background: #000;
 }
 
-.vignette-viewer-video {
+.song-vignette-video {
   width: 100%;
-  height: 100%;
+  height: auto;
+  max-height: 80vh;
+  max-height: 80dvh;
   display: block;
   background: #000;
 }
 
-.vignette-viewer-close {
-  position: absolute;
-  top: max(1rem, env(safe-area-inset-top));
-  right: max(1rem, env(safe-area-inset-right));
-  width: 2rem;
-  height: 2rem;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.58);
-  color: #fff;
-  font-family: Arial, sans-serif;
-  font-size: 1.35rem;
-  font-weight: 300;
-  line-height: 1;
-  backdrop-filter: blur(10px);
-}
-
-.vignette-viewer-close span {
-  transform: translateY(-0.04rem);
-}
-
-.vignette-viewer-close:hover,
-.vignette-viewer-close:focus-visible {
-  border-color: #fff;
-  background: rgba(0, 0, 0, 0.78);
-}
-
-.vignette-viewer-status {
+.song-vignette-status {
   position: absolute;
   margin: 0;
   color: #fff;
@@ -895,7 +871,7 @@ a {
 }
 
 @media (min-width: 1024px) {
-  .vignette-viewer-video {
+  .song-vignette-video {
     width: auto;
     height: auto;
     max-width: 80vw;

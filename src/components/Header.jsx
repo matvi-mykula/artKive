@@ -6,6 +6,7 @@ export function Header({
   themePreference,
   onThemeToggle,
   currentPath,
+  player,
   tracks,
 }) {
   const isHome = currentPath === "/";
@@ -22,7 +23,7 @@ export function Header({
         {!isHome && isTagPage ? (
           <span className="status">Tag Library</span>
         ) : null}
-        <AudioPlayer tracks={tracks} />
+        <AudioPlayer currentPath={currentPath} player={player} tracks={tracks} />
         <button className="theme-toggle" type="button" onClick={onThemeToggle}>
           {themeLabel}
         </button>

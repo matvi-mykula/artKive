@@ -1,6 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useAudioPlayer } from "../hooks/useAudioPlayer";
-import { VignetteViewer } from "./VignetteViewer";
+import { useEffect, useRef, useState } from "react";
+import { navigate } from "../lib/router";
 
 const FOCUSABLE_SELECTOR = [
   "button:not([disabled])",
@@ -54,24 +53,20 @@ function VignetteIcon() {
   );
 }
 
-export function AudioPlayer({ tracks }) {
+export function AudioPlayer({ currentPath, player, tracks }) {
   const modalRef = useRef(null);
   const closeButtonRef = useRef(null);
   const openerRef = useRef(null);
   const [isChooserOpen, setIsChooserOpen] = useState(false);
-  const [activeVignetteTrackId, setActiveVignetteTrackId] = useState(null);
   const {
     currentIndex,
     currentTrack,
-    getPlaybackPosition,
     isError,
     isPlaying,
     selectTrack,
     skipTrack,
     togglePlayback,
-  } = useAudioPlayer(tracks);
-  const activeVignetteTrack =
-    tracks.find((track) => track.id === activeVignetteTrackId) ?? null;
+  } = player;
 
   useEffect(() => {
     if (!isChooserOpen) {
@@ -120,23 +115,20 @@ export function AudioPlayer({ tracks }) {
     };
   }, [isChooserOpen]);
 
-  useEffect(() => {
-    if (
-      activeVignetteTrackId &&
-      currentTrack?.id !== activeVignetteTrackId
-    ) {
-      setActiveVignetteTrackId(null);
-    }
-  }, [activeVignetteTrackId, currentTrack?.id]);
-
   async function handleTrackSelect(index) {
     setIsChooserOpen(false);
     await selectTrack(index);
+    if (currentPath.startsWith("/songs/")) {
+      navigate("/");
+    }
   }
 
-  const closeVignette = useCallback(() => {
-    setActiveVignetteTrackId(null);
-  }, []);
+  function handleSkip(offset) {
+    skipTrack(offset);
+    if (currentPath.startsWith("/songs/")) {
+      navigate("/");
+    }
+  }
 
   function handleVignetteSelect(index) {
     const track = tracks[index];
@@ -144,15 +136,9 @@ export function AudioPlayer({ tracks }) {
       return;
     }
 
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen?.().catch(() => {
-        // The full-viewport overlay remains available when fullscreen is denied.
-      });
-    }
-
     setIsChooserOpen(false);
-    setActiveVignetteTrackId(track.id);
     void selectTrack(index);
+    navigate(`/songs/${track.id}`);
   }
 
   return (
@@ -172,7 +158,7 @@ export function AudioPlayer({ tracks }) {
         <button
           className="audio-skip"
           type="button"
-          onClick={() => skipTrack(-1)}
+          onClick={() => handleSkip(-1)}
           aria-label="Previous song"
           disabled={!currentTrack}
         >
@@ -196,7 +182,7 @@ export function AudioPlayer({ tracks }) {
         <button
           className="audio-skip"
           type="button"
-          onClick={() => skipTrack(1)}
+          onClick={() => handleSkip(1)}
           aria-label="Next song"
           disabled={!currentTrack}
         >
@@ -253,8 +239,8 @@ export function AudioPlayer({ tracks }) {
                         className="audio-track-vignette"
                         type="button"
                         onClick={() => handleVignetteSelect(index)}
-                        aria-label={`Play ${track.title} with video`}
-                        title={`Play ${track.title} with video`}
+                        aria-label={`Open ${track.title} video page`}
+                        title={`Open ${track.title} video page`}
                       >
                         <VignetteIcon />
                       </button>
@@ -265,15 +251,6 @@ export function AudioPlayer({ tracks }) {
             </div>
           </section>
         </div>
-      ) : null}
-      {activeVignetteTrack &&
-      currentTrack?.id === activeVignetteTrack.id ? (
-        <VignetteViewer
-          getPlaybackPosition={getPlaybackPosition}
-          isPlaying={isPlaying}
-          onClose={closeVignette}
-          track={activeVignetteTrack}
-        />
       ) : null}
     </div>
   );
