@@ -225,7 +225,10 @@ export function SongPage({ player, track }) {
             className="song-vignette-video"
             ref={videoRef}
             src={track.vignette.src}
-            style={{ objectFit: track.vignette.fit }}
+            style={{
+              objectFit:
+                viewMode === VIEW_IMMERSIVE ? "cover" : track.vignette.fit,
+            }}
             muted
             loop
             playsInline
