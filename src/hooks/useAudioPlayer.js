@@ -168,6 +168,21 @@ export function useAudioPlayer(tracks) {
     [],
   );
 
+  const getPlaybackDuration = useCallback(() => {
+    const duration = audioRef.current?.duration;
+    return Number.isFinite(duration) ? duration : 0;
+  }, []);
+
+  const seekTo = useCallback((time) => {
+    const audio = audioRef.current;
+    if (!audio || !Number.isFinite(time)) {
+      return;
+    }
+
+    const duration = Number.isFinite(audio.duration) ? audio.duration : time;
+    audio.currentTime = Math.min(Math.max(time, 0), duration);
+  }, []);
+
   const loadTrack = useCallback(
     (index) => {
       if (index < 0 || index >= tracks.length) {
@@ -198,10 +213,12 @@ export function useAudioPlayer(tracks) {
   return {
     currentIndex,
     currentTrack,
+    getPlaybackDuration,
     getPlaybackPosition,
     isError: status === "error",
     isPlaying: status === "playing",
     loadTrack,
+    seekTo,
     selectTrack,
     skipTrack,
     status,

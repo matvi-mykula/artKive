@@ -8,11 +8,25 @@ function getWrappedDifference(currentTime, targetTime, duration) {
   return Math.min(directDifference, duration - directDifference);
 }
 
+function formatTime(time) {
+  if (!Number.isFinite(time) || time < 0) {
+    return "0:00";
+  }
+
+  const minutes = Math.floor(time / 60);
+  const seconds = Math.floor(time % 60);
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
+}
+
 export function SongPage({ player, track }) {
   const stageRef = useRef(null);
   const videoRef = useRef(null);
   const [hasVideoError, setHasVideoError] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isImmersive, setIsImmersive] = useState(false);
+  const [playbackDuration, setPlaybackDuration] = useState(0);
+  const [playbackPosition, setPlaybackPosition] = useState(0);
+  const isExpanded = isFullscreen || isImmersive;
   const showPlayButton =
     !player.isPlaying &&
     player.status !== "loading" &&
@@ -36,6 +50,47 @@ export function SongPage({ player, track }) {
       );
     };
   }, []);
+
+  useEffect(() => {
+    function updatePlaybackTime() {
+      setPlaybackPosition(player.getPlaybackPosition());
+      setPlaybackDuration(player.getPlaybackDuration());
+    }
+
+    updatePlaybackTime();
+    const interval = window.setInterval(
+      updatePlaybackTime,
+      player.isPlaying ? 250 : 750,
+    );
+
+    return () => window.clearInterval(interval);
+  }, [
+    player.getPlaybackDuration,
+    player.getPlaybackPosition,
+    player.isPlaying,
+    track.id,
+  ]);
+
+  useEffect(() => {
+    if (!isImmersive) {
+      return undefined;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    function handleKeyDown(event) {
+      if (event.key === "Escape") {
+        setIsImmersive(false);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isImmersive]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -98,8 +153,12 @@ export function SongPage({ player, track }) {
 
   async function handleFullscreenToggle() {
     const stage = stageRef.current;
-    const video = videoRef.current;
-    if (!stage || !video) {
+    if (!stage) {
+      return;
+    }
+
+    if (isImmersive) {
+      setIsImmersive(false);
       return;
     }
 
@@ -121,9 +180,24 @@ export function SongPage({ player, track }) {
         return;
       }
 
-      video.webkitEnterFullscreen?.();
+      setIsImmersive(true);
     } catch {
-      // The page presentation remains available when fullscreen is denied.
+      setIsImmersive(true);
+    }
+  }
+
+  function handleSeek(event) {
+    const targetTime = Number(event.target.value);
+    player.seekTo(targetTime);
+    setPlaybackPosition(targetTime);
+
+    const video = videoRef.current;
+    if (
+      video &&
+      Number.isFinite(video.duration) &&
+      video.duration > 0
+    ) {
+      video.currentTime = targetTime % video.duration;
     }
   }
 
@@ -142,7 +216,7 @@ export function SongPage({ player, track }) {
       </section>
 
       <section
-        className="song-vignette-stage"
+        className={`song-vignette-stage${isImmersive ? " is-immersive" : ""}`}
         ref={stageRef}
         aria-label={`${track.title} video`}
       >
@@ -155,6 +229,7 @@ export function SongPage({ player, track }) {
           loop
           playsInline
           preload="auto"
+          onClick={() => void player.togglePlayback()}
           onError={() => setHasVideoError(true)}
         />
         {hasVideoError ? (
@@ -171,24 +246,67 @@ export function SongPage({ player, track }) {
             <span aria-hidden="true">▶</span>
           </button>
         ) : null}
-        <button
-          className={`song-vignette-fullscreen${isFullscreen ? " is-active" : ""}`}
-          type="button"
-          onClick={handleFullscreenToggle}
-          aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
-          title={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+        <div
+          className="song-vignette-controls"
+          role="group"
+          aria-label="Song controls"
         >
-          {isFullscreen ? (
-            <span aria-hidden="true">×</span>
-          ) : (
-            <span className="song-vignette-fullscreen-icon" aria-hidden="true">
-              <span />
-              <span />
-              <span />
-              <span />
-            </span>
-          )}
-        </button>
+          <button
+            className="song-vignette-control-toggle"
+            type="button"
+            onClick={() => void player.togglePlayback()}
+            disabled={player.status === "loading"}
+            aria-label={
+              player.isPlaying
+                ? `Pause ${track.title}`
+                : `Play ${track.title}`
+            }
+            title={player.isPlaying ? "Pause" : "Play"}
+          >
+            <span
+              className={`song-vignette-control-icon ${player.isPlaying ? "is-pause" : "is-play"}`}
+              aria-hidden="true"
+            />
+          </button>
+          <span className="song-vignette-time">
+            {formatTime(playbackPosition)}
+          </span>
+          <input
+            className="song-vignette-progress"
+            type="range"
+            min="0"
+            max={playbackDuration || 0}
+            step="0.05"
+            value={Math.min(playbackPosition, playbackDuration || 0)}
+            onChange={handleSeek}
+            disabled={!playbackDuration}
+            aria-label={`${track.title} playback position`}
+          />
+          <span className="song-vignette-time">
+            {formatTime(playbackDuration)}
+          </span>
+          <button
+            className={`song-vignette-fullscreen${isExpanded ? " is-active" : ""}`}
+            type="button"
+            onClick={handleFullscreenToggle}
+            aria-label={isExpanded ? "Exit fullscreen" : "Enter fullscreen"}
+            title={isExpanded ? "Exit fullscreen" : "Enter fullscreen"}
+          >
+            {isExpanded ? (
+              <span aria-hidden="true">×</span>
+            ) : (
+              <span
+                className="song-vignette-fullscreen-icon"
+                aria-hidden="true"
+              >
+                <span />
+                <span />
+                <span />
+                <span />
+              </span>
+            )}
+          </button>
+        </div>
       </section>
     </main>
   );

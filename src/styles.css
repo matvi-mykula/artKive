@@ -338,6 +338,7 @@ a {
   max-height: 80dvh;
   display: block;
   background: #000;
+  cursor: pointer;
 }
 
 .song-vignette-status {
@@ -380,11 +381,116 @@ a {
   background: rgba(0, 0, 0, 0.78);
 }
 
-.song-vignette-fullscreen {
+.song-vignette-controls {
   position: absolute;
-  top: max(1rem, env(safe-area-inset-top));
-  right: max(1rem, env(safe-area-inset-right));
-  z-index: 1;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: auto auto minmax(4rem, 1fr) auto auto;
+  align-items: center;
+  gap: 0.65rem;
+  padding:
+    2.5rem max(1rem, env(safe-area-inset-right))
+    max(1rem, env(safe-area-inset-bottom))
+    max(1rem, env(safe-area-inset-left));
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.82));
+  color: #fff;
+}
+
+.song-vignette-control-toggle {
+  position: relative;
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.42);
+  color: #fff;
+}
+
+.song-vignette-control-toggle:hover,
+.song-vignette-control-toggle:focus-visible {
+  border-color: #fff;
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.song-vignette-control-toggle:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.song-vignette-control-icon.is-play {
+  width: 0;
+  height: 0;
+  margin-left: 0.1rem;
+  border-top: 0.3rem solid transparent;
+  border-bottom: 0.3rem solid transparent;
+  border-left: 0.48rem solid currentColor;
+}
+
+.song-vignette-control-icon.is-pause {
+  width: 0.52rem;
+  height: 0.65rem;
+  border-right: 0.14rem solid currentColor;
+  border-left: 0.14rem solid currentColor;
+}
+
+.song-vignette-time {
+  min-width: 2.4rem;
+  font-family: var(--font-ui);
+  font-size: 0.62rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.song-vignette-progress {
+  width: 100%;
+  height: 1rem;
+  margin: 0;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.song-vignette-progress::-webkit-slider-runnable-track {
+  height: 2px;
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.song-vignette-progress::-webkit-slider-thumb {
+  width: 0.8rem;
+  height: 0.8rem;
+  margin-top: -0.35rem;
+  appearance: none;
+  border: 1px solid #fff;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.song-vignette-progress::-moz-range-track {
+  height: 2px;
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.song-vignette-progress::-moz-range-thumb {
+  width: 0.8rem;
+  height: 0.8rem;
+  border: 1px solid #fff;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.song-vignette-progress:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.song-vignette-fullscreen {
+  position: relative;
   width: 2rem;
   height: 2rem;
   display: grid;
@@ -399,6 +505,10 @@ a {
 }
 
 .song-vignette-fullscreen.is-active {
+  position: fixed;
+  top: max(1rem, env(safe-area-inset-top));
+  right: max(1rem, env(safe-area-inset-right));
+  z-index: 3;
   font-family: Arial, sans-serif;
   font-size: 1.35rem;
   font-weight: 300;
@@ -455,11 +565,20 @@ a {
 }
 
 .song-vignette-stage:fullscreen,
-.song-vignette-stage:-webkit-full-screen {
+.song-vignette-stage:-webkit-full-screen,
+.song-vignette-stage.is-immersive {
   width: 100%;
   height: 100%;
   min-height: 100%;
   background: #000;
+}
+
+.song-vignette-stage.is-immersive {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  height: 100vh;
+  height: 100dvh;
 }
 
 .status {
