@@ -9,8 +9,29 @@ function getWrappedDifference(currentTime, targetTime, duration) {
 }
 
 export function SongPage({ player, track }) {
+  const stageRef = useRef(null);
   const videoRef = useRef(null);
   const [hasVideoError, setHasVideoError] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    function handleFullscreenChange() {
+      const fullscreenElement =
+        document.fullscreenElement ?? document.webkitFullscreenElement;
+      setIsFullscreen(fullscreenElement === stageRef.current);
+    }
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      document.removeEventListener(
+        "webkitfullscreenchange",
+        handleFullscreenChange,
+      );
+    };
+  }, []);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -71,6 +92,37 @@ export function SongPage({ player, track }) {
     track.id,
   ]);
 
+  async function handleFullscreenToggle() {
+    const stage = stageRef.current;
+    const video = videoRef.current;
+    if (!stage || !video) {
+      return;
+    }
+
+    const fullscreenElement =
+      document.fullscreenElement ?? document.webkitFullscreenElement;
+
+    try {
+      if (fullscreenElement) {
+        const exitFullscreen =
+          document.exitFullscreen ?? document.webkitExitFullscreen;
+        await exitFullscreen?.call(document);
+        return;
+      }
+
+      const requestFullscreen =
+        stage.requestFullscreen ?? stage.webkitRequestFullscreen;
+      if (requestFullscreen) {
+        await requestFullscreen.call(stage);
+        return;
+      }
+
+      video.webkitEnterFullscreen?.();
+    } catch {
+      // The page presentation remains available when fullscreen is denied.
+    }
+  }
+
   return (
     <main className="page-shell song-page">
       <section className="detail-header">
@@ -87,6 +139,7 @@ export function SongPage({ player, track }) {
 
       <section
         className="song-vignette-stage"
+        ref={stageRef}
         aria-label={`${track.title} video`}
       >
         <video
@@ -103,6 +156,19 @@ export function SongPage({ player, track }) {
         {hasVideoError ? (
           <p className="song-vignette-status">Video unavailable</p>
         ) : null}
+        <button
+          className={`song-vignette-fullscreen${isFullscreen ? " is-active" : ""}`}
+          type="button"
+          onClick={handleFullscreenToggle}
+          aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+          title={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+        >
+          {isFullscreen ? (
+            <span aria-hidden="true">×</span>
+          ) : (
+            "Full screen"
+          )}
+        </button>
       </section>
     </main>
   );
