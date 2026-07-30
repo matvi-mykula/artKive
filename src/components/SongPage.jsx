@@ -13,6 +13,10 @@ export function SongPage({ player, track }) {
   const videoRef = useRef(null);
   const [hasVideoError, setHasVideoError] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const showPlayButton =
+    !player.isPlaying &&
+    player.status !== "loading" &&
+    player.currentTrack?.id === track.id;
 
   useEffect(() => {
     function handleFullscreenChange() {
@@ -156,6 +160,17 @@ export function SongPage({ player, track }) {
         {hasVideoError ? (
           <p className="song-vignette-status">Video unavailable</p>
         ) : null}
+        {showPlayButton ? (
+          <button
+            className="song-vignette-play"
+            type="button"
+            onClick={() => void player.togglePlayback()}
+            aria-label={`Play ${track.title}`}
+            title={`Play ${track.title}`}
+          >
+            <span aria-hidden="true">▶</span>
+          </button>
+        ) : null}
         <button
           className={`song-vignette-fullscreen${isFullscreen ? " is-active" : ""}`}
           type="button"
@@ -166,7 +181,12 @@ export function SongPage({ player, track }) {
           {isFullscreen ? (
             <span aria-hidden="true">×</span>
           ) : (
-            "Full screen"
+            <span className="song-vignette-fullscreen-icon" aria-hidden="true">
+              <span />
+              <span />
+              <span />
+              <span />
+            </span>
           )}
         </button>
       </section>
