@@ -28,9 +28,7 @@ export function SongPage({ player, track }) {
   const [playbackPosition, setPlaybackPosition] = useState(0);
   const isExpanded = isFullscreen || isImmersive;
   const showPlayButton =
-    !player.isPlaying &&
-    player.status !== "loading" &&
-    player.currentTrack?.id === track.id;
+    !player.isPlaying && player.currentTrack?.id === track.id;
 
   useEffect(() => {
     function handleFullscreenChange() {
@@ -255,7 +253,6 @@ export function SongPage({ player, track }) {
             className="song-vignette-control-toggle"
             type="button"
             onClick={() => void player.togglePlayback()}
-            disabled={player.status === "loading"}
             aria-label={
               player.isPlaying
                 ? `Pause ${track.title}`

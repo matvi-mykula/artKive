@@ -418,11 +418,6 @@ a {
   background: rgba(0, 0, 0, 0.72);
 }
 
-.song-vignette-control-toggle:disabled {
-  cursor: wait;
-  opacity: 0.55;
-}
-
 .song-vignette-control-icon.is-play {
   width: 0;
   height: 0;
