@@ -14,6 +14,7 @@ export function useAudioPlayer(tracks) {
   const shouldKeepPlayingRef = useRef(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [status, setStatus] = useState(tracks.length ? "idle" : "error");
+  const [playback, setPlayback] = useState({ position: 0, duration: 0 });
 
   const currentTrack = tracks[currentIndex] ?? null;
 
@@ -29,6 +30,13 @@ export function useAudioPlayer(tracks) {
 
     const handleLoadStart = () =>
       setStatus((current) => (current === "playing" ? current : "loading"));
+    const handlePlaybackUpdate = () => {
+      setPlayback({
+        position: audio.currentTime,
+        duration: Number.isFinite(audio.duration) ? audio.duration : 0,
+      });
+    };
+    const handleEmptied = () => setPlayback({ position: 0, duration: 0 });
     const handlePlay = () => {
       errorSkipCountRef.current = 0;
       setStatus("playing");
@@ -72,6 +80,9 @@ export function useAudioPlayer(tracks) {
     };
 
     audio.addEventListener("loadstart", handleLoadStart);
+    audio.addEventListener("durationchange", handlePlaybackUpdate);
+    audio.addEventListener("timeupdate", handlePlaybackUpdate);
+    audio.addEventListener("emptied", handleEmptied);
     audio.addEventListener("play", handlePlay);
     audio.addEventListener("pause", handlePause);
     audio.addEventListener("error", handleError);
@@ -80,6 +91,9 @@ export function useAudioPlayer(tracks) {
     return () => {
       audio.pause();
       audio.removeEventListener("loadstart", handleLoadStart);
+      audio.removeEventListener("durationchange", handlePlaybackUpdate);
+      audio.removeEventListener("timeupdate", handlePlaybackUpdate);
+      audio.removeEventListener("emptied", handleEmptied);
       audio.removeEventListener("play", handlePlay);
       audio.removeEventListener("pause", handlePause);
       audio.removeEventListener("error", handleError);
@@ -95,6 +109,7 @@ export function useAudioPlayer(tracks) {
     }
 
     audio.src = currentTrack.src;
+    setPlayback({ position: 0, duration: 0 });
     audio.load();
 
     if (!shouldKeepPlayingRef.current) {
@@ -168,11 +183,6 @@ export function useAudioPlayer(tracks) {
     [],
   );
 
-  const getPlaybackDuration = useCallback(() => {
-    const duration = audioRef.current?.duration;
-    return Number.isFinite(duration) ? duration : 0;
-  }, []);
-
   const seekTo = useCallback((time) => {
     const audio = audioRef.current;
     if (!audio || !Number.isFinite(time)) {
@@ -181,6 +191,10 @@ export function useAudioPlayer(tracks) {
 
     const duration = Number.isFinite(audio.duration) ? audio.duration : time;
     audio.currentTime = Math.min(Math.max(time, 0), duration);
+    setPlayback({
+      position: audio.currentTime,
+      duration: Number.isFinite(audio.duration) ? audio.duration : 0,
+    });
   }, []);
 
   const loadTrack = useCallback(
@@ -213,11 +227,11 @@ export function useAudioPlayer(tracks) {
   return {
     currentIndex,
     currentTrack,
-    getPlaybackDuration,
     getPlaybackPosition,
     isError: status === "error",
     isPlaying: status === "playing",
     loadTrack,
+    playback,
     seekTo,
     selectTrack,
     skipTrack,
