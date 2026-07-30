@@ -895,6 +895,16 @@ a {
 }
 
 @media (min-width: 1024px) {
+  .vignette-viewer-video {
+    width: auto;
+    height: auto;
+    max-width: min(80vw, 720px);
+    max-height: min(80vh, 1280px);
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.08),
+      0 1.5rem 5rem rgba(0, 0, 0, 0.55);
+  }
+
   .hero,
   .detail-header {
     gap: 0.7rem;
