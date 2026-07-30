@@ -17,15 +17,14 @@ export function VignetteViewer({
   const viewerRef = useRef(null);
   const videoRef = useRef(null);
   const closeButtonRef = useRef(null);
+  const wasFullscreenRef = useRef(false);
   const [hasVideoError, setHasVideoError] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(
-    () => Boolean(document.fullscreenElement),
-  );
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     closeButtonRef.current?.focus();
+    wasFullscreenRef.current = Boolean(document.fullscreenElement);
 
     const handleKeyDown = (event) => {
       if (event.key === "Escape") {
@@ -57,7 +56,11 @@ export function VignetteViewer({
       }
     };
     const handleFullscreenChange = () => {
-      setIsFullscreen(document.fullscreenElement === viewerRef.current);
+      if (document.fullscreenElement) {
+        wasFullscreenRef.current = true;
+      } else if (wasFullscreenRef.current) {
+        onClose();
+      }
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -123,20 +126,8 @@ export function VignetteViewer({
     };
   }, [getPlaybackPosition, isPlaying, track.id]);
 
-  async function toggleFullscreen() {
-    try {
-      if (document.fullscreenElement === viewerRef.current) {
-        await document.exitFullscreen();
-      } else {
-        await viewerRef.current?.requestFullscreen();
-      }
-    } catch {
-      // The full-viewport viewer remains available when native fullscreen is denied.
-    }
-  }
-
   function handleClose() {
-    if (document.fullscreenElement === viewerRef.current) {
+    if (document.fullscreenElement) {
       document.exitFullscreen().catch(() => {});
     }
     onClose();
@@ -164,25 +155,16 @@ export function VignetteViewer({
       {hasVideoError ? (
         <p className="vignette-viewer-status">Video unavailable</p>
       ) : null}
-      <div className="vignette-viewer-controls">
-        {document.fullscreenEnabled ? (
-          <button
-            className="vignette-viewer-control"
-            type="button"
-            onClick={toggleFullscreen}
-          >
-            {isFullscreen ? "Exit full screen" : "Full screen"}
-          </button>
-        ) : null}
-        <button
-          className="vignette-viewer-control"
-          type="button"
-          ref={closeButtonRef}
-          onClick={handleClose}
-        >
-          Close
-        </button>
-      </div>
+      <button
+        className="vignette-viewer-close"
+        type="button"
+        ref={closeButtonRef}
+        onClick={handleClose}
+        aria-label="Close video"
+        title="Close video"
+      >
+        <span aria-hidden="true">×</span>
+      </button>
     </section>,
     document.body,
   );
