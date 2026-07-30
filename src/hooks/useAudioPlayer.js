@@ -118,10 +118,20 @@ export function useAudioPlayer(tracks) {
     }
 
     shouldKeepPlayingRef.current = true;
+
+    if (!audio.paused) {
+      errorSkipCountRef.current = 0;
+      setStatus("playing");
+      return;
+    }
+
     setStatus("loading");
 
     try {
       await audio.play();
+      if (!audio.paused) {
+        setStatus("playing");
+      }
     } catch {
       shouldKeepPlayingRef.current = false;
       setStatus("error");
