@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 const MAX_SYNC_DRIFT_SECONDS = 0.45;
 
@@ -141,7 +142,7 @@ export function VignetteViewer({
     onClose();
   }
 
-  return (
+  return createPortal(
     <section
       className="vignette-viewer"
       ref={viewerRef}
@@ -182,6 +183,7 @@ export function VignetteViewer({
           Close
         </button>
       </div>
-    </section>
+    </section>,
+    document.body,
   );
 }
