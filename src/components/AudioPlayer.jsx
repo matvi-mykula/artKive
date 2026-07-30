@@ -144,6 +144,12 @@ export function AudioPlayer({ tracks }) {
       return;
     }
 
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen?.().catch(() => {
+        // The full-viewport overlay remains available when fullscreen is denied.
+      });
+    }
+
     setIsChooserOpen(false);
     setActiveVignetteTrackId(track.id);
     void selectTrack(index);

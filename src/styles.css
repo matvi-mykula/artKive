@@ -334,29 +334,32 @@ a {
   background: #000;
 }
 
-.vignette-viewer-controls {
+.vignette-viewer-close {
   position: absolute;
   top: max(1rem, env(safe-area-inset-top));
   right: max(1rem, env(safe-area-inset-right));
-  display: flex;
-  gap: 0.45rem;
-}
-
-.vignette-viewer-control {
-  padding: 0.48rem 0.62rem;
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  padding: 0;
   border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: 0.15rem;
+  border-radius: 50%;
   background: rgba(0, 0, 0, 0.58);
   color: #fff;
-  font-family: var(--font-ui);
-  font-size: 0.64rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-family: Arial, sans-serif;
+  font-size: 1.35rem;
+  font-weight: 300;
+  line-height: 1;
   backdrop-filter: blur(10px);
 }
 
-.vignette-viewer-control:hover,
-.vignette-viewer-control:focus-visible {
+.vignette-viewer-close span {
+  transform: translateY(-0.04rem);
+}
+
+.vignette-viewer-close:hover,
+.vignette-viewer-close:focus-visible {
   border-color: #fff;
   background: rgba(0, 0, 0, 0.78);
 }
