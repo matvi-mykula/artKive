@@ -589,9 +589,8 @@ a {
 .song-vignette-stage.is-immersive {
   position: fixed;
   inset: 0;
-  bottom: auto;
   z-index: 100;
-  height: var(--song-immersive-height, 100dvh);
+  height: auto;
   min-height: 0;
 }
 

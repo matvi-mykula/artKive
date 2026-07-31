@@ -62,15 +62,8 @@ export function SongPage({ player, track }) {
       return undefined;
     }
 
-    const stage = stageRef.current;
-    const viewport = window.visualViewport;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-
-    function updateImmersiveHeight() {
-      const height = viewport?.height ?? window.innerHeight;
-      stage?.style.setProperty("--song-immersive-height", `${height}px`);
-    }
 
     function handleKeyDown(event) {
       if (event.key === "Escape") {
@@ -78,16 +71,10 @@ export function SongPage({ player, track }) {
       }
     }
 
-    updateImmersiveHeight();
-    viewport?.addEventListener("resize", updateImmersiveHeight);
-    window.addEventListener("resize", updateImmersiveHeight);
     window.addEventListener("keydown", handleKeyDown);
 
     return () => {
       document.body.style.overflow = previousOverflow;
-      stage?.style.removeProperty("--song-immersive-height");
-      viewport?.removeEventListener("resize", updateImmersiveHeight);
-      window.removeEventListener("resize", updateImmersiveHeight);
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [viewMode]);
