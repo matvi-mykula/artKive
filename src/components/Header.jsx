@@ -11,11 +11,12 @@ export function Header({
 }) {
   const isHome = currentPath === "/";
   const isTagPage = currentPath.startsWith("/tags/");
+  const isSongPage = currentPath.startsWith("/songs/");
   const themeLabel =
     themePreference === "auto" ? `Auto: ${theme}` : `Theme: ${theme}`;
 
   return (
-    <header className="site-header">
+    <header className={`site-header${isSongPage ? " is-song-page" : ""}`}>
       <button className="brand" type="button" onClick={() => navigate("/")}>
         Matvi ArtKive
       </button>

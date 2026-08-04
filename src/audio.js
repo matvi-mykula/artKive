@@ -32,6 +32,7 @@ function resolveVignette(vignette) {
   return {
     src: publicAssetPath(String(src)),
     fit: vignette.fit ?? "contain",
+    aspectRatio: vignette.aspectRatio ?? "auto",
   };
 }
 
@@ -43,6 +44,7 @@ const trackDefinitions = [
     vignette: {
       fileName: "cc-call-and-response-vignette.mp4",
       fit: "contain",
+      aspectRatio: "9 / 16",
     },
   },
   {

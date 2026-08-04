@@ -207,15 +207,15 @@ export function SongPage({ player, track }) {
         ref={stageRef}
         aria-label={`${track.title} video`}
       >
-        <div className="song-vignette-media">
+        <div
+          className="song-vignette-media"
+          style={{ aspectRatio: track.vignette.aspectRatio }}
+        >
           <video
             className="song-vignette-video"
             ref={videoRef}
             src={track.vignette.src}
-            style={{
-              objectFit:
-                viewMode === VIEW_IMMERSIVE ? "cover" : track.vignette.fit,
-            }}
+            style={{ objectFit: track.vignette.fit }}
             muted
             loop
             playsInline
@@ -270,26 +270,26 @@ export function SongPage({ player, track }) {
                 aria-hidden="true"
               />
             </button>
-            <span className="song-vignette-time">
-              {formatTime(player.playback.position)}
-            </span>
-            <input
-              className="song-vignette-progress"
-              type="range"
-              min="0"
-              max={player.playback.duration || 0}
-              step="0.05"
-              value={Math.min(
-                player.playback.position,
-                player.playback.duration || 0,
-              )}
-              onChange={handleSeek}
-              disabled={!player.playback.duration}
-              aria-label={`${track.title} playback position`}
-            />
-            <span className="song-vignette-time">
-              {formatTime(player.playback.duration)}
-            </span>
+            <div className="song-vignette-timeline">
+              <input
+                className="song-vignette-progress"
+                type="range"
+                min="0"
+                max={player.playback.duration || 0}
+                step="0.05"
+                value={Math.min(
+                  player.playback.position,
+                  player.playback.duration || 0,
+                )}
+                onChange={handleSeek}
+                disabled={!player.playback.duration}
+                aria-label={`${track.title} playback position`}
+              />
+              <div className="song-vignette-time-row" aria-hidden="true">
+                <span>{formatTime(player.playback.position)}</span>
+                <span>{formatTime(player.playback.duration)}</span>
+              </div>
+            </div>
             <button
               className="song-vignette-fullscreen"
               type="button"
