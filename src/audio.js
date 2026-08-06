@@ -52,6 +52,16 @@ const trackDefinitions = [
     title: "Let The Sparkling Do The Talking",
     fileName: "LetTheSparklingDoTheTalking.mp3",
   },
+  {
+    id: "bar-in-the-sky",
+    title: "Bar In The Sky",
+    fileName: "BarInTheSky.mp3",
+  },
+  {
+    id: "blind-biiko",
+    title: "Blind Biiko",
+    fileName: "BlindBiiko.mp3",
+  },
 ];
 
 export const siteAudioTracks = trackDefinitions
