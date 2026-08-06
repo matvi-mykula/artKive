@@ -48,14 +48,14 @@ const trackDefinitions = [
     },
   },
   {
-    id: "let-the-sparkling-do-the-talking",
-    title: "Let The Sparkling Do The Talking",
-    fileName: "LetTheSparklingDoTheTalking.mp3",
-  },
-  {
     id: "bar-in-the-sky",
     title: "Bar In The Sky",
     fileName: "BarInTheSky.mp3",
+  },
+  {
+    id: "let-the-sparkling-do-the-talking",
+    title: "Let The Sparkling Do The Talking",
+    fileName: "LetTheSparklingDoTheTalking.mp3",
   },
   {
     id: "blind-biiko",
