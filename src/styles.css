@@ -94,8 +94,7 @@ a {
   justify-content: space-between;
   gap: 1rem;
   padding: 1rem;
-  backdrop-filter: blur(18px);
-  background: color-mix(in srgb, var(--bg) 78%, transparent);
+  background: var(--bg);
   border-bottom: 1px solid var(--line);
 }
 
