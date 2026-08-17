@@ -36,10 +36,6 @@ function getRoute() {
 function HomePage({ items }) {
   return (
     <main className="page-shell">
-      <section className="hero">
-        <h1>Works</h1>
-      </section>
-
       <section className="archive-grid" aria-label="Artwork archive">
         {items.map((work) => (
           <ArchiveCard key={work.slug} work={work} />
