@@ -1147,10 +1147,6 @@ a {
     font-size: clamp(1.15rem, 1.8vw, 1.95rem);
   }
 
-  .archive-grid {
-    gap: 6.4rem;
-  }
-
   .archive-card {
     gap: 0.55rem;
     padding: 0.65rem;
