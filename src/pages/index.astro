@@ -7,10 +7,21 @@ const description =
   "Matvi Mykula is an artist working with sculpture, lamps, grown materials, light, sound, and image.";
 const structuredData = {
   "@context": "https://schema.org",
-  "@type": "WebSite",
-  name: "Matvi Mykula",
-  url: "https://matvi-mykula.vercel.app/",
-  description,
+  "@graph": [
+    {
+      "@type": "WebSite",
+      name: "Matvi Mykula",
+      url: new URL("/", Astro.site).href,
+      description,
+    },
+    {
+      "@type": "Person",
+      name: "Matvi Mykula",
+      url: new URL("/", Astro.site).href,
+      jobTitle: "Artist",
+      sameAs: ["https://github.com/matvi-mykula"],
+    },
+  ],
 };
 ---
 

@@ -11,21 +11,21 @@ export function getStaticPaths() {
 const { work } = Astro.props;
 const description = summarizeText(work.description || work.blurb) ||
   `${work.title}, ${work.year}, by Matvi Mykula.`;
-const canonical = `https://matvi-mykula.vercel.app/works/${work.slug}`;
+const canonical = new URL(`/works/${work.slug}`, Astro.site).href;
 const structuredData = {
   "@context": "https://schema.org",
   "@type": "VisualArtwork",
   name: work.title,
   dateCreated: work.year,
   url: canonical,
-  image: work.images.map((image) => new URL(image.url, "https://matvi-mykula.vercel.app").href),
+  image: work.images.map((image) => new URL(image.url, Astro.site).href),
   description: taggedTextToPlainText(work.description || work.blurb),
   artMedium: work.tags.map(getTagLabel).join(", "),
   width: work.dimension ?? undefined,
   creator: {
     "@type": "Person",
     name: "Matvi Mykula",
-    url: "https://matvi-mykula.vercel.app/",
+    url: new URL("/", Astro.site).href,
   },
 };
 ---
