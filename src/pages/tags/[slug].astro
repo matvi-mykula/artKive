@@ -15,12 +15,12 @@ export function getStaticPaths() {
 const { tag, tagWorks } = Astro.props;
 const workTitles = tagWorks.map((work) => work.title).join(", ");
 const description = tag.description ||
-  `Explore ${tag.label} in the Matvi ArtKive${workTitles ? ` through ${workTitles}` : ""}.`;
+  `Explore ${tag.label} in artwork by Matvi Mykula${workTitles ? ` through ${workTitles}` : ""}.`;
 const noindex = tagWorks.length < 2;
 ---
 
 <SiteLayout
-  title={`${tag.label} — Matvi ArtKive`}
+  title={`${tag.label} — Matvi Mykula`}
   description={description}
   image={tagWorks[0]?.coverImage}
   noindex={noindex}

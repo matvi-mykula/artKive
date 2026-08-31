@@ -4,7 +4,7 @@ import SiteChrome from "../components/SiteChrome.jsx";
 import "../styles.css";
 
 const {
-  title = "Matvi ArtKive",
+  title = "Matvi Mykula",
   description = "An evolving archive of sculpture, light, material, sound, and image.",
   image = "/images/light-steppe/cover.jpg",
   noindex = false,
@@ -31,7 +31,7 @@ const socialImage = new URL(image, Astro.site);
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="sitemap" href="/sitemap.xml" />
     {noindex ? <meta name="robots" content="noindex,follow" /> : null}
-    <meta property="og:site_name" content="Matvi ArtKive" />
+    <meta property="og:site_name" content="Matvi Mykula" />
     <meta property="og:type" content={type} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />

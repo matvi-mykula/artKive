@@ -84,7 +84,7 @@ export default function SiteChrome({ currentPath }) {
   return (
     <>
       <header className={`site-header${isSongPage ? " is-song-page" : ""}`}>
-        <a className="brand" href="/">Matvi ArtKive</a>
+        <a className="brand" href="/">Matvi Mykula</a>
         <div className="header-meta">
           {isTagPage ? <span className="status">Tag Library</span> : null}
           <AudioPlayer

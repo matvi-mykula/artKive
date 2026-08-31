@@ -9,16 +9,16 @@ export function getStaticPaths() {
 }
 
 const { track } = Astro.props;
-const description = `${track.title}, a sound and moving-image vignette in the Matvi ArtKive.`;
+const description = `${track.title}, a sound and moving-image vignette by Matvi Mykula.`;
 ---
 
-<SiteLayout title={`${track.title} — Matvi ArtKive`} description={description}>
+<SiteLayout title={`${track.title} — Matvi Mykula`} description={description}>
   <main class="page-shell song-page">
     <section class="detail-header">
       <a class="back-link" href="/">Back to archive</a>
       <p class="eyebrow">Song vignette</p>
       <h1>{track.title}</h1>
-      <p class="detail-description">Sound and moving image from the Matvi ArtKive.</p>
+      <p class="detail-description">Sound and moving image by Matvi Mykula.</p>
     </section>
     <div id="song-vignette-root" aria-live="polite"></div>
   </main>

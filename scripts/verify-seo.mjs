@@ -12,15 +12,15 @@ function read(relativePath) {
 }
 
 const home = read("index.html");
-assert.match(home, /<h1[^>]*>Matvi ArtKive<\/h1>/);
-assert.match(home, /rel="canonical" href="https:\/\/art-kive\.vercel\.app\/"/);
+assert.match(home, /<h1[^>]*>Matvi Mykula<\/h1>/);
+assert.match(home, /rel="canonical" href="https:\/\/matvi-mykula\.vercel\.app\/"/);
 assert.match(home, /"@type":"WebSite"/);
 
 for (const work of works) {
   const html = read(`works/${work.slug}/index.html`);
   assert.ok(html.includes(`<h1>${work.title}</h1>`), `Missing title for ${work.slug}`);
   assert.ok(
-    html.includes(`rel="canonical" href="https://art-kive.vercel.app/works/${work.slug}"`),
+    html.includes(`rel="canonical" href="https://matvi-mykula.vercel.app/works/${work.slug}"`),
     `Incorrect canonical for ${work.slug}`,
   );
   assert.ok(html.includes('"@type":"VisualArtwork"'), `Missing artwork data for ${work.slug}`);
@@ -28,12 +28,12 @@ for (const work of works) {
 
 const robots = read("robots.txt");
 assert.match(robots, /User-agent: \*/);
-assert.match(robots, /Sitemap: https:\/\/art-kive\.vercel\.app\/sitemap\.xml/);
+assert.match(robots, /Sitemap: https:\/\/matvi-mykula\.vercel\.app\/sitemap\.xml/);
 
 const sitemap = read("sitemap.xml");
 for (const work of works) {
   assert.ok(
-    sitemap.includes(`https://art-kive.vercel.app/works/${work.slug}`),
+    sitemap.includes(`https://matvi-mykula.vercel.app/works/${work.slug}`),
     `Sitemap is missing ${work.slug}`,
   );
 }
