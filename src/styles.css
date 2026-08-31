@@ -1,13 +1,13 @@
 :root {
-  color-scheme: dark;
-  --bg: #121512;
-  --bg-elevated: #171d17;
-  --text: #93f5a6;
-  --muted: #5fbf75;
-  --line: rgba(147, 245, 166, 0.16);
-  --accent: #b7ff85;
-  --tag: #b7ff85;
-  --shadow: 0 20px 60px rgba(0, 0, 0, 0.28);
+  color-scheme: light;
+  --bg: #edf3fb;
+  --bg-elevated: #f7faff;
+  --text: #132b52;
+  --muted: #456da6;
+  --line: rgba(19, 43, 82, 0.14);
+  --accent: #2b6fdf;
+  --tag: #1d5dcc;
+  --shadow: 0 18px 48px rgba(19, 43, 82, 0.08);
   --font-body: "Georgia", "Times New Roman", serif;
   --font-ui: "Arial Narrow", "Arial", sans-serif;
 }
@@ -22,18 +22,6 @@
   --accent: #b7ff85;
   --tag: #b7ff85;
   --shadow: 0 22px 64px rgba(0, 0, 0, 0.32);
-}
-
-:root[data-theme="light"] {
-  color-scheme: light;
-  --bg: #edf3fb;
-  --bg-elevated: #f7faff;
-  --text: #132b52;
-  --muted: #456da6;
-  --line: rgba(19, 43, 82, 0.14);
-  --accent: #2b6fdf;
-  --tag: #1d5dcc;
-  --shadow: 0 18px 48px rgba(19, 43, 82, 0.08);
 }
 
 * {
@@ -100,13 +88,6 @@ a {
   letter-spacing: 0.08em;
   font-family: var(--font-ui);
   font-size: 0.78rem;
-}
-
-.theme-toggle {
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-family: var(--font-ui);
-  font-size: 0.68rem;
 }
 
 .brand {

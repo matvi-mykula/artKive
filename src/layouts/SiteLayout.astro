@@ -18,7 +18,7 @@ const socialImage = new URL(image, Astro.site);
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <meta
@@ -46,15 +46,9 @@ const socialImage = new URL(image, Astro.site);
     ) : null}
     <script is:inline>
       (() => {
-        const key = "art-display-theme-preference";
-        let preference = "auto";
-        try {
-          const stored = window.localStorage.getItem(key);
-          if (stored === "light" || stored === "dark") preference = stored;
-        } catch {}
         const hour = new Date().getHours();
         document.documentElement.dataset.theme =
-          preference === "auto" ? (hour >= 7 && hour < 19 ? "light" : "dark") : preference;
+          hour >= 7 && hour < 19 ? "light" : "dark";
       })();
     </script>
     <ClientRouter />

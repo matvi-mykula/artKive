@@ -5,27 +5,9 @@ import { useAudioPlayer } from "../hooks/useAudioPlayer.js";
 import { AudioPlayer } from "./AudioPlayer.jsx";
 import { SongVignette } from "./SongVignette.jsx";
 
-const THEME_PREFERENCE_KEY = "art-display-theme-preference";
-const AUTO_THEME = "auto";
-
 function getTimeBasedTheme(date = new Date()) {
   const hour = date.getHours();
   return hour >= 7 && hour < 19 ? "light" : "dark";
-}
-
-function getInitialThemePreference() {
-  if (typeof window === "undefined") {
-    return AUTO_THEME;
-  }
-
-  try {
-    const storedTheme = window.localStorage.getItem(THEME_PREFERENCE_KEY);
-    return storedTheme === "light" || storedTheme === "dark"
-      ? storedTheme
-      : AUTO_THEME;
-  } catch {
-    return AUTO_THEME;
-  }
 }
 
 function getSongId(currentPath) {
@@ -35,12 +17,7 @@ function getSongId(currentPath) {
 
 export default function SiteChrome({ currentPath }) {
   const player = useAudioPlayer(siteAudioTracks);
-  const [themePreference, setThemePreference] = useState(
-    getInitialThemePreference,
-  );
   const [portalTarget, setPortalTarget] = useState(null);
-  const theme =
-    themePreference === AUTO_THEME ? getTimeBasedTheme() : themePreference;
   const songId = getSongId(currentPath);
   const selectedSong = useMemo(() => {
     const index = siteAudioTracks.findIndex((track) => track.id === songId);
@@ -48,17 +25,14 @@ export default function SiteChrome({ currentPath }) {
   }, [songId]);
 
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    try {
-      if (themePreference === AUTO_THEME) {
-        window.localStorage.removeItem(THEME_PREFERENCE_KEY);
-      } else {
-        window.localStorage.setItem(THEME_PREFERENCE_KEY, themePreference);
-      }
-    } catch {
-      // Theme preference remains available for the current page.
-    }
-  }, [theme, themePreference]);
+    const updateTheme = () => {
+      document.documentElement.dataset.theme = getTimeBasedTheme();
+    };
+
+    updateTheme();
+    const intervalId = window.setInterval(updateTheme, 60_000);
+    return () => window.clearInterval(intervalId);
+  }, []);
 
   useEffect(() => {
     const updatePortalTarget = () =>
@@ -78,8 +52,6 @@ export default function SiteChrome({ currentPath }) {
 
   const isTagPage = currentPath.startsWith("/tags/");
   const isSongPage = Boolean(selectedSong);
-  const themeLabel =
-    themePreference === AUTO_THEME ? `Auto: ${theme}` : `Theme: ${theme}`;
 
   return (
     <>
@@ -92,15 +64,6 @@ export default function SiteChrome({ currentPath }) {
             player={player}
             tracks={siteAudioTracks}
           />
-          <button
-            className="theme-toggle"
-            type="button"
-            onClick={() =>
-              setThemePreference(theme === "dark" ? "light" : "dark")
-            }
-          >
-            {themeLabel}
-          </button>
         </div>
       </header>
       {portalTarget && selectedSong?.track.vignette
