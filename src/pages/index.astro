@@ -18,9 +18,6 @@ const structuredData = {
   <main class="page-shell">
     <section class="archive-intro" aria-labelledby="archive-title">
       <h1 id="archive-title" class="eyebrow">Artwork archive</h1>
-      <p class="intro">
-        Sculpture, lamps, grown materials, light, sound, and image.
-      </p>
     </section>
     <section class="archive-grid" aria-label="Artwork archive">
       {works.map((work, index) => <ArchiveCard work={work} eager={index < 2} />)}
