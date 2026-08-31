@@ -1,0 +1,23 @@
+---
+import { getTagLabel } from "../tags.js";
+
+const { segments = [], class: className = "" } = Astro.props;
+---
+
+<p class={className}>
+  {
+    segments.map((segment) =>
+      segment.type === "tag" ? (
+        <a
+          class="inline-tag"
+          href={`/tags/${segment.tagId}`}
+          aria-label={`View works tagged ${getTagLabel(segment.tagId)}`}
+        >
+          {segment.text}
+        </a>
+      ) : (
+        segment.text
+      ),
+    )
+  }
+</p>

@@ -1,0 +1,25 @@
+---
+import SiteLayout from "../../layouts/SiteLayout.astro";
+import { siteAudioTracks } from "../../audio.js";
+
+export function getStaticPaths() {
+  return siteAudioTracks
+    .filter((track) => track.vignette)
+    .map((track) => ({ params: { slug: track.id }, props: { track } }));
+}
+
+const { track } = Astro.props;
+const description = `${track.title}, a sound and moving-image vignette in the Matvi ArtKive.`;
+---
+
+<SiteLayout title={`${track.title} — Matvi ArtKive`} description={description}>
+  <main class="page-shell song-page">
+    <section class="detail-header">
+      <a class="back-link" href="/">Back to archive</a>
+      <p class="eyebrow">Song vignette</p>
+      <h1>{track.title}</h1>
+      <p class="detail-description">Sound and moving image from the Matvi ArtKive.</p>
+    </section>
+    <div id="song-vignette-root" aria-live="polite"></div>
+  </main>
+</SiteLayout>

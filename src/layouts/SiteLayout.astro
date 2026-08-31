@@ -1,0 +1,75 @@
+---
+import { ClientRouter } from "astro:transitions";
+import SiteChrome from "../components/SiteChrome.jsx";
+import "../styles.css";
+
+const {
+  title = "Matvi ArtKive",
+  description = "An evolving archive of sculpture, light, material, sound, and image.",
+  image = "/images/light-steppe/cover.jpg",
+  noindex = false,
+  structuredData = null,
+  type = "website",
+} = Astro.props;
+const canonicalPath =
+  Astro.url.pathname === "/" ? "/" : Astro.url.pathname.replace(/\/+$/, "");
+const canonical = new URL(canonicalPath, Astro.site);
+const socialImage = new URL(image, Astro.site);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap.xml" />
+    {noindex ? <meta name="robots" content="noindex,follow" /> : null}
+    <meta property="og:site_name" content="Matvi ArtKive" />
+    <meta property="og:type" content={type} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={socialImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={socialImage} />
+    {structuredData ? (
+      <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
+    ) : null}
+    <script is:inline>
+      (() => {
+        const key = "art-display-theme-preference";
+        let preference = "auto";
+        try {
+          const stored = window.localStorage.getItem(key);
+          if (stored === "light" || stored === "dark") preference = stored;
+        } catch {}
+        const hour = new Date().getHours();
+        document.documentElement.dataset.theme =
+          preference === "auto" ? (hour >= 7 && hour < 19 ? "light" : "dark") : preference;
+      })();
+    </script>
+    <ClientRouter />
+  </head>
+  <body>
+    <div class="app-shell">
+      <SiteChrome
+        currentPath={Astro.url.pathname}
+        client:load
+        transition:persist="site-chrome"
+      />
+      <slot />
+      <footer class="site-footer">
+        <a class="footer-link" href="/contact">Contact</a>
+      </footer>
+    </div>
+  </body>
+</html>

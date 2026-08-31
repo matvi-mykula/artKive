@@ -1,0 +1,68 @@
+---
+import RichText from "../../components/RichText.astro";
+import SiteLayout from "../../layouts/SiteLayout.astro";
+import { summarizeText, taggedTextToPlainText, works } from "../../lib/content.js";
+import { getTagLabel } from "../../tags.js";
+
+export function getStaticPaths() {
+  return works.map((work) => ({ params: { slug: work.slug }, props: { work } }));
+}
+
+const { work } = Astro.props;
+const description = summarizeText(work.description || work.blurb) ||
+  `${work.title}, ${work.year}, in the Matvi ArtKive.`;
+const canonical = `https://art-kive.vercel.app/works/${work.slug}`;
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "VisualArtwork",
+  name: work.title,
+  dateCreated: work.year,
+  url: canonical,
+  image: work.images.map((image) => new URL(image.url, "https://art-kive.vercel.app").href),
+  description: taggedTextToPlainText(work.description || work.blurb),
+  artMedium: work.tags.map(getTagLabel).join(", "),
+  width: work.dimension ?? undefined,
+};
+---
+
+<SiteLayout
+  title={`${work.title} — Matvi ArtKive`}
+  description={description}
+  image={work.coverImage}
+  type="article"
+  structuredData={structuredData}
+>
+  <main class="page-shell">
+    <section class="detail-header">
+      <a class="back-link" href="/">Back to archive</a>
+      <p class="eyebrow">Artwork / {work.year}</p>
+      <h1>{work.title}</h1>
+      {work.descriptionSegments.length ? (
+        <RichText class="detail-description" segments={work.descriptionSegments} />
+      ) : null}
+      {work.dimension ? <p class="work-dimension">{work.dimension}</p> : null}
+      <nav class="work-tags" aria-label={`${work.title} tags`}>
+        {work.tags.map((tagId) => <a href={`/tags/${tagId}`}>{getTagLabel(tagId)}</a>)}
+      </nav>
+    </section>
+
+    <section class="detail-images" aria-label={`${work.title} images`}>
+      {
+        work.images.map((image, index) => (
+          <figure class="detail-figure">
+            <img
+              src={image.url}
+              alt={`${work.title}, artwork view ${index + 1}`}
+              loading={index === 0 ? "eager" : "lazy"}
+              fetchpriority={index === 0 ? "high" : "auto"}
+              decoding="async"
+            />
+            <figcaption>
+              {work.title} / {String(index + 1).padStart(2, "0")}
+            </figcaption>
+          </figure>
+        ))
+      }
+    </section>
+  </main>
+</SiteLayout>

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ForceGraph2D from "react-force-graph-2d";
-import { navigate } from "../lib/router";
+import { navigate } from "astro:transitions/client";
 import {
   getTagFocus,
   getTagNetwork,
@@ -238,7 +238,7 @@ function paintPointerArea(node, color, ctx) {
   ctx.fill();
 }
 
-export function TagForceMap({ selectedTagId, works }) {
+export function TagForceMap({ selectedTagId, works, showHeader = true }) {
   const graphRef = useRef();
   const [containerRef, size] = useElementSize();
   const didInitialFocusRef = useRef(false);
@@ -366,7 +366,7 @@ export function TagForceMap({ selectedTagId, works }) {
 
   return (
     <section className="tag-force-section" aria-label={`${selectedLabel} tag force map`}>
-      <div className="tag-force-header">
+      {showHeader ? <div className="tag-force-header">
         <div className="tag-force-title">
           <p className="eyebrow">Selected tag</p>
           <h1>{selectedLabel}</h1>
@@ -379,11 +379,10 @@ export function TagForceMap({ selectedTagId, works }) {
         {visibleWorks.length ? (
           <div className="tag-force-previews" aria-label={`${selectedLabel} work previews`}>
             {visibleWorks.map((work) => (
-              <button
+              <a
                 key={work.slug}
                 className="tag-force-work"
-                type="button"
-                onClick={() => navigate(`/works/${work.slug}`)}
+                href={`/works/${work.slug}`}
                 aria-label={`Open ${work.title}`}
               >
                 <img
@@ -391,11 +390,11 @@ export function TagForceMap({ selectedTagId, works }) {
                   alt=""
                   style={{ objectPosition: work.coverPosition }}
                 />
-              </button>
+              </a>
             ))}
           </div>
         ) : null}
-      </div>
+      </div> : null}
 
       <div className="tag-force-map" ref={containerRef}>
         {size.width > 0 && size.height > 0 ? (

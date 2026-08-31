@@ -1,0 +1,26 @@
+---
+import RichText from "./RichText.astro";
+
+const { work, eager = false } = Astro.props;
+---
+
+<article class="archive-card">
+  <a class="card-link" href={`/works/${work.slug}`} aria-label={`Open ${work.title}`}>
+    <img
+      src={work.coverImage}
+      alt={`${work.title}, archived artwork`}
+      class="card-image"
+      style={`object-position: ${work.coverPosition}`}
+      loading={eager ? "eager" : "lazy"}
+      fetchpriority={eager ? "high" : "auto"}
+      decoding="async"
+    />
+  </a>
+  <div class="card-copy">
+    <h2><a class="card-title-link" href={`/works/${work.slug}`}>{work.title}</a></h2>
+    {work.dimension ? <p class="work-dimension">{work.dimension}</p> : null}
+    {work.blurbSegments.length ? (
+      <RichText class="card-text" segments={work.blurbSegments} />
+    ) : null}
+  </div>
+</article>

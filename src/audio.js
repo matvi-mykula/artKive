@@ -1,36 +1,10 @@
-const audioModules = import.meta.glob("../public/audio/*.{mp3,MP3,m4a,M4A,wav,WAV,aac,AAC}", {
-  eager: true,
-  query: "?url",
-  import: "default",
-});
-
-const vignetteModules = import.meta.glob(
-  "../public/vignettes/*.{mp4,MP4,webm,WEBM}",
-  {
-    eager: true,
-    query: "?url",
-    import: "default",
-  },
-);
-
-function publicAssetPath(modulePath) {
-  return modulePath.replace("../public", "");
-}
-
 function resolveVignette(vignette) {
   if (!vignette) {
     return null;
   }
 
-  const modulePath = `../public/vignettes/${vignette.fileName}`;
-  const src = vignetteModules[modulePath];
-
-  if (!src) {
-    return null;
-  }
-
   return {
-    src: publicAssetPath(String(src)),
+    src: `/vignettes/${vignette.fileName}`,
     fit: vignette.fit ?? "contain",
     aspectRatio: vignette.aspectRatio ?? "auto",
   };
@@ -65,19 +39,9 @@ const trackDefinitions = [
 ];
 
 export const siteAudioTracks = trackDefinitions
-  .map((track) => {
-    const modulePath = `../public/audio/${track.fileName}`;
-    const src = audioModules[modulePath];
-
-    if (!src) {
-      return null;
-    }
-
-    return {
-      id: track.id,
-      title: track.title,
-      src: publicAssetPath(String(src)),
-      vignette: resolveVignette(track.vignette),
-    };
-  })
-  .filter(Boolean);
+  .map((track) => ({
+    id: track.id,
+    title: track.title,
+    src: `/audio/${track.fileName}`,
+    vignette: resolveVignette(track.vignette),
+  }));

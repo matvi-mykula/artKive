@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { navigate } from "../lib/router";
+import { navigate } from "astro:transitions/client";
 
 const FOCUSABLE_SELECTOR = [
   "button:not([disabled])",

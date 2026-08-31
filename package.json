@@ -4,13 +4,14 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
+    "dev": "astro dev",
+    "build": "astro build && node scripts/verify-seo.mjs",
+    "preview": "astro preview",
     "ingest:work": "node scripts/ingest-work.mjs",
     "optimize:image": "node scripts/optimize-image.mjs",
     "update:work": "node scripts/update-work.mjs",
     "validate:archive": "node scripts/validate-archive.mjs",
+    "verify:seo": "node scripts/verify-seo.mjs",
     "test": "node --test scripts/*.test.mjs"
   },
   "dependencies": {
@@ -19,8 +20,8 @@
     "react-force-graph-2d": "^1.29.1"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "4.3.4",
-    "sharp": "^0.34.5",
-    "vite": "5.4.14"
+    "@astrojs/react": "6.0.4",
+    "astro": "7.2.9",
+    "sharp": "^0.35.4"
   }
 }

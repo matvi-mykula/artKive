@@ -1,0 +1,62 @@
+---
+import ArchiveCard from "../../components/ArchiveCard.astro";
+import { TagForceMap } from "../../components/TagForceMap.jsx";
+import SiteLayout from "../../layouts/SiteLayout.astro";
+import { getWorksForTag, works } from "../../lib/content.js";
+import { tags } from "../../tags.js";
+
+export function getStaticPaths() {
+  return Object.values(tags).map((tag) => ({
+    params: { slug: tag.id },
+    props: { tag, tagWorks: getWorksForTag(tag.id) },
+  }));
+}
+
+const { tag, tagWorks } = Astro.props;
+const workTitles = tagWorks.map((work) => work.title).join(", ");
+const description = tag.description ||
+  `Explore ${tag.label} in the Matvi ArtKive${workTitles ? ` through ${workTitles}` : ""}.`;
+const noindex = tagWorks.length < 2;
+---
+
+<SiteLayout
+  title={`${tag.label} — Matvi ArtKive`}
+  description={description}
+  image={tagWorks[0]?.coverImage}
+  noindex={noindex}
+>
+  <main class="page-shell">
+    <div class="tag-force-header">
+      <div class="tag-force-title">
+        <p class="eyebrow">Selected tag</p>
+        <h1>{tag.label}</h1>
+        <p class="tag-force-count">
+          {tagWorks.length} work{tagWorks.length === 1 ? "" : "s"}
+        </p>
+      </div>
+      {tagWorks.length ? (
+        <div class="tag-force-previews" aria-label={`${tag.label} work previews`}>
+          {tagWorks.slice(0, 5).map((work) => (
+            <a class="tag-force-work" href={`/works/${work.slug}`} aria-label={`Open ${work.title}`}>
+              <img
+                src={work.coverImage}
+                alt=""
+                style={`object-position: ${work.coverPosition}`}
+                loading="lazy"
+              />
+            </a>
+          ))}
+        </div>
+      ) : null}
+    </div>
+    <TagForceMap
+      selectedTagId={tag.id}
+      works={works}
+      showHeader={false}
+      client:only="react"
+    />
+    <section class="archive-grid" aria-label={`${tag.label} works`}>
+      {tagWorks.map((work, index) => <ArchiveCard work={work} eager={index < 2} />)}
+    </section>
+  </main>
+</SiteLayout>
