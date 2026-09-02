@@ -54,6 +54,7 @@ const noindex = tagWorks.length < 2;
       works={works}
       showHeader={false}
       client:only="react"
+      transition:persist="tag-force-map"
     />
     <section class="archive-grid" aria-label={`${tag.label} works`}>
       {tagWorks.map((work, index) => <ArchiveCard work={work} eager={index < 2} />)}

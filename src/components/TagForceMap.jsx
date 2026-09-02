@@ -26,6 +26,26 @@ const FOCUS_MS = 650;
 const MAX_LABEL_LINE_LENGTH = 12;
 const MAX_LABEL_LINES = 2;
 
+let cachedNetworkKey = "";
+let cachedNetwork = null;
+
+function getNetworkKey(works) {
+  return works
+    .map((work) => `${work.slug}:${work.tags.join(",")}`)
+    .join("|");
+}
+
+function getStableTagNetwork(works) {
+  const networkKey = getNetworkKey(works);
+
+  if (!cachedNetwork || cachedNetworkKey !== networkKey) {
+    cachedNetworkKey = networkKey;
+    cachedNetwork = getTagNetwork(works);
+  }
+
+  return cachedNetwork;
+}
+
 function cssVar(name, fallback) {
   if (typeof window === "undefined") {
     return fallback;
@@ -242,7 +262,7 @@ export function TagForceMap({ selectedTagId, works, showHeader = true }) {
   const graphRef = useRef();
   const [containerRef, size] = useElementSize();
   const didInitialFocusRef = useRef(false);
-  const network = useMemo(() => getTagNetwork(works), [works]);
+  const network = useMemo(() => getStableTagNetwork(works), [works]);
   const focus = useMemo(
     () => getTagFocus(network, selectedTagId),
     [network, selectedTagId],
@@ -307,11 +327,12 @@ export function TagForceMap({ selectedTagId, works, showHeader = true }) {
 
   const handleNodeClick = useCallback(
     (node) => {
-      focusNode(node);
-
-      if (node.id !== selectedTagId) {
-        navigate(`/tags/${node.id}`);
+      if (node.id === selectedTagId) {
+        focusNode(node);
+        return;
       }
+
+      navigate(`/tags/${node.id}`);
     },
     [focusNode, selectedTagId],
   );
