@@ -20,8 +20,8 @@ const TYPE_COLORS = {
   uncategorized: "#9aa59a",
 };
 
-const FOCUS_ZOOM = 2.35;
-const MOBILE_FOCUS_ZOOM = 1.55;
+const FOCUS_ZOOM = 1.85;
+const MOBILE_FOCUS_ZOOM = 1.2;
 const FOCUS_MS = 650;
 const MAX_LABEL_LINE_LENGTH = 12;
 const MAX_LABEL_LINES = 2;

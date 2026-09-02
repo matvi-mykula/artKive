@@ -998,10 +998,11 @@ a {
 
 .tag-force-map {
   position: relative;
-  height: clamp(31rem, 63vw, 43rem);
+  width: min(100%, 64rem);
+  height: clamp(24rem, 58svh, 32rem);
+  margin-inline: auto;
   overflow: hidden;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
+  border: 1px solid var(--line);
   background:
     radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 52%),
     var(--bg);
@@ -1014,6 +1015,8 @@ a {
 .tag-force-types {
   display: flex;
   flex-wrap: wrap;
+  width: min(100%, 64rem);
+  margin-inline: auto;
   gap: 0.45rem 0.85rem;
   color: var(--muted);
   font-family: var(--font-ui);
@@ -1125,7 +1128,7 @@ a {
   }
 
   .tag-force-map {
-    height: 34rem;
+    height: clamp(22rem, 55svh, 27rem);
   }
 
   .tag-force-types {
