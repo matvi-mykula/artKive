@@ -15,8 +15,19 @@ function read(relativePath) {
 const home = read("index.html");
 assert.match(home, /<h1[^>]*>Artwork archive<\/h1>/);
 assert.ok(home.includes(`rel="canonical" href="${productionOrigin}/"`));
+assert.ok(
+  home.includes(
+    'name="description" content="Matvi Mykula is an artist exploring sculpture, light, grown materials, sound, and image."',
+  ),
+  "Homepage search description is missing or incorrect",
+);
+assert.ok(
+  home.includes('rel="icon" href="/favicon.svg" type="image/svg+xml"'),
+  "Homepage favicon link is missing",
+);
 assert.match(home, /"@type":"WebSite"/);
 assert.match(home, /"@type":"Person"/);
+assert.ok(fs.existsSync(path.join(dist, "favicon.svg")), "Missing generated favicon");
 
 for (const work of works) {
   const html = read(`works/${work.slug}/index.html`);
