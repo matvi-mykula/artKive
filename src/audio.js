@@ -12,9 +12,9 @@ function resolveVignette(vignette) {
 
 const trackDefinitions = [
   {
-    id: "now-id-all-we-all-have",
-    title: "Now Id All We All Have",
-    fileName: "NowIdAllWeAllHave.mp3",
+    id: "now-is-all-we-all-have",
+    title: "Now Is All We All Have",
+    fileName: "NowIsAllWeAllHave.mp3",
   },
   {
     id: "cc-call-and-response",
